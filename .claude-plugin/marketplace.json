@@ -1,0 +1,33 @@
+{
+  "name": "schaaff-claude-code",
+  "owner": {
+    "name": "Test User"
+  },
+  "homepage": "https://github.com/dschaaff/claude-code-plugins",
+  "repository": "https://github.com/dschaaff/claude-code-plugins",
+  "plugins": [
+    {
+      "name": "code-review",
+      "source": "./plugins/code-review",
+      "description": "Comprehensive code review with security analysis, language-specific best practices, and structured feedback",
+      "version": "2.0.0",
+      "author": {
+        "name": "Daniel Schaaff",
+        "url": "https://danielschaaff.com"
+      },
+      "keywords": [
+        "code-review",
+        "security",
+        "quality",
+        "testing",
+        "best-practices"
+      ],
+      "commands": [
+        "./commands/code-review.md"
+      ],
+      "agents": [
+        "./agents/code-reviewer.md"
+      ]
+    }
+  ]
+}
