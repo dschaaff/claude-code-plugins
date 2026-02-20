@@ -28,6 +28,29 @@
       "agents": [
         "./agents/code-reviewer.md"
       ]
+    },
+    {
+      "name": "brainstorming",
+      "source": "./plugins/brainstorming",
+      "description": "Collaborative design agent that explores ideas through structured dialogue and produces design documents before implementation",
+      "version": "1.0.0",
+      "author": {
+        "name": "Daniel Schaaff",
+        "url": "https://danielschaaff.com"
+      },
+      "keywords": [
+        "brainstorming",
+        "design",
+        "planning",
+        "architecture",
+        "ideation"
+      ],
+      "commands": [
+        "./commands/brainstorm.md"
+      ],
+      "agents": [
+        "./agents/brainstormer.md"
+      ]
     }
   ]
 }
