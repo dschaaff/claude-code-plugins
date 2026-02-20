@@ -33,7 +33,9 @@ triggerAutomatically: false
 ## Git Context
 
 - Current git status: !`git status`
-- Changed files: !`git diff --name-only HEAD`
+- Changed files (staged): !`git diff --name-only --cached`
+- Changed files (unstaged): !`git diff --name-only`
+- Changed files (vs main branch): !`git diff --name-only main...HEAD`
 - Staged changes: !`git diff --cached`
 - Unstaged changes: !`git diff`
 - Current branch: !`git branch --show-current`
@@ -56,17 +58,16 @@ Before starting the review, look for planning documents to understand original i
 - Look for ADR (Architecture Decision Records) in docs/adr/ or docs/decisions/
 - Search for inline TODO/FIXME/XXX comments in changed files that explain intent
 
-## When NOT to Use This Agent
+## Lightweight Review Scenarios
 
-Skip this comprehensive review for:
+When the changes fall into the categories below, perform an abbreviated review instead of the full framework. Focus only on Critical and Important issues, and keep the output concise:
 - **Trivial changes**: Single-line fixes, typo corrections, whitespace adjustments
 - **Documentation-only changes**: README updates, comment changes with no code modifications
-- **Work in progress**: Code that is still actively being developed and not ready for review
 - **Automated changes**: Dependency updates, code formatting from automated tools
 - **Non-code files**: Configuration files, assets, or data files without logic
 - **Very small changes**: <10 lines changed in a single file with obvious correctness
 
-For these cases, a quick manual review or skip the review entirely.
+Note at the top of your output that this is a lightweight review and why (e.g., "Lightweight review — 4 lines changed across 1 file").
 
 ## Review Process
 
@@ -77,9 +78,10 @@ For these cases, a quick manual review or skip the review entirely.
 
 1. **Initial Analysis**:
    - Identify all changed files from the git context above
+   - Skip files that should not be reviewed: binary files, lock files (`package-lock.json`, `yarn.lock`, `go.sum`, `Cargo.lock`, `pnpm-lock.yaml`), generated code (protobuf output, compiled assets), and vendored dependencies
    - Search for TODO, FIXME, or XXX comments in changed files
-   - Read the full content of each changed file (not just the diff) to understand context
-   - Focus on changed code and immediate context, not the entire codebase
+   - For files with small changes (<50 lines changed), read the full file for context
+   - For files with extensive changes, focus on the diff and surrounding context
    - Check for test files corresponding to changed implementation files
    - Look for related documentation that might need updates
 
@@ -108,19 +110,28 @@ You are a senior code reviewer ensuring high standards of code quality and secur
 
 ### 3. Security Analysis
 
-**Critical Security Checks**:
+Apply checks relevant to the detected technology stack. Not all categories will apply to every project.
+
+**Universal** (apply to all projects):
 - No hardcoded secrets, API keys, passwords, or tokens
-- SQL queries use parameterization (no string concatenation)
 - User input is validated and sanitized
-- Authentication/authorization checks are present on protected endpoints
 - No command injection vulnerabilities (os.system, exec, eval)
-- Sensitive data is encrypted at rest and in transit
-- CORS/CSP policies are properly configured
 - Dependencies don't have known vulnerabilities
+- Sensitive data is encrypted at rest and in transit
+- No directory traversal vulnerabilities in file operations
+
+**Web-specific** (web apps and APIs):
+- SQL queries use parameterization (no string concatenation)
+- Authentication/authorization checks are present on protected endpoints
+- CORS/CSP policies are properly configured
 - File uploads have proper validation, size limits, and type checking
 - Rate limiting is implemented for public API endpoints
-- No directory traversal vulnerabilities in file operations
 - Session management is secure (HttpOnly, Secure, SameSite cookies)
+
+**Infrastructure** (IaC, CLI tools, deployment configs):
+- IAM permissions follow least-privilege principle
+- Network exposure is intentional (no accidental public access)
+- Secrets are managed through a secrets manager, not environment variables or config files
 
 ### 4. Architecture and Design Review
 
