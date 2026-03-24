@@ -1,0 +1,6 @@
+This file represents the "before" state. The change is a one-line typo fix:
+- Line: `capitalize("hello world"); // "Hello World"`
++ Line: `capitalize("hello world"); // "Hello world"`
+
+(The comment had incorrect capitalization of "World" — capitalize() only
+capitalizes the first letter of the string, not each word.)

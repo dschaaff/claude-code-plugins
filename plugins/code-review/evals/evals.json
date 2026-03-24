@@ -1,0 +1,96 @@
+{
+  "skill_name": "code-review",
+  "setup_script": "evals/setup-eval-repo.sh",
+  "evals": [
+    {
+      "id": 1,
+      "name": "security-vuln-python-flask",
+      "prompt": "Review the staged changes in this repo. It's a Python Flask API for user management.",
+      "expected_output": "Should identify SQL injection as Critical, flag hardcoded API key, note password hash exposure in GET response, flag debug=True and host=0.0.0.0 in production.",
+      "files": ["evals/files/security-vuln/"],
+      "expectations": [
+        "Review identifies SQL injection vulnerability in the search_users or create_user function as Critical",
+        "Review flags the hardcoded API_KEY string as a Critical or Important security issue",
+        "Review notes that password_hash is exposed in the GET /users/<id> response",
+        "Review flags debug=True or host=0.0.0.0 as a security concern for production",
+        "Review follows the structured output format with sections for Critical Issues, Important Issues, and Suggestions",
+        "Review includes a Strengths section that acknowledges at least one positive aspect",
+        "Review provides specific file:line references for identified issues"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "performance-node-n-plus-1",
+      "prompt": "Review the staged changes. This is a Node.js task management service.",
+      "expected_output": "Should identify N+1 query problem in getTasksWithAssignees, missing await on promises in updateTaskStatus, potential XSS in buildTaskReport, missing transaction in deleteCompletedTasks.",
+      "files": ["evals/files/performance-node/"],
+      "expectations": [
+        "Review identifies the N+1 query problem in getTasksWithAssignees as an Important or Critical performance issue",
+        "Review flags missing await on db.query or fetch calls in updateTaskStatus",
+        "Review identifies the XSS vulnerability in buildTaskReport where task data is interpolated into HTML without escaping",
+        "Review notes that deleteCompletedTasks lacks a transaction and could leave data in an inconsistent state",
+        "Review provides actionable fix recommendations with code examples for at least one issue",
+        "Review categorizes issues using the Critical/Important/Suggestions framework"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "trivial-one-line-typo",
+      "prompt": "Review the staged changes. It's a one-line fix to a comment in the README.",
+      "expected_output": "Should recognize this as a trivial change and use the lightweight review format. Should not produce a full review framework for a single comment fix.",
+      "files": ["evals/files/trivial-fix/"],
+      "expectations": [
+        "Review explicitly notes this is a lightweight review or mentions the change is trivial",
+        "Review does NOT produce full Critical/Important/Suggestions sections with detailed content",
+        "Review is noticeably shorter than a full review — the response should be concise and proportional to the change"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "clean-go-handler-with-tests",
+      "prompt": "Review the staged changes. This is a Go HTTP handler with tests for a paginated items API.",
+      "expected_output": "Should acknowledge the code is well-written with good patterns. Might have minor suggestions but no Critical issues. Should note good test coverage.",
+      "files": ["evals/files/clean-go/"],
+      "expectations": [
+        "Review acknowledges the code quality positively in the Strengths section",
+        "Review notes the presence of tests and comments on test coverage or test quality",
+        "Review does NOT flag any Critical issues (the code is intentionally clean)",
+        "Review mentions good patterns like proper error handling, pagination bounds checking, or structured logging",
+        "Review follows the structured output format"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "terraform-misconfig-aws",
+      "prompt": "Review the staged Terraform changes. This defines AWS infrastructure for a production analytics platform.",
+      "expected_output": "Should flag IAM wildcard permissions, public S3 bucket, hardcoded database password, publicly accessible RDS, missing encryption, 0.0.0.0/0 security group, no backups.",
+      "files": ["evals/files/terraform-misconfig/"],
+      "expectations": [
+        "Review identifies the IAM policy with Action=* and Resource=* as a Critical security issue",
+        "Review flags the S3 bucket as publicly accessible (public access block all set to false, Principal=* in policy)",
+        "Review identifies the hardcoded database password in the aws_db_instance resource",
+        "Review flags the RDS instance as publicly accessible",
+        "Review notes that storage_encrypted is false on the database",
+        "Review flags the security group allowing ingress from 0.0.0.0/0 on port 5432",
+        "Review notes missing backup configuration (backup_retention_period = 0) or disabled deletion protection",
+        "Review applies infrastructure-specific security checks (least privilege, network exposure, secrets management)"
+      ]
+    },
+    {
+      "id": 6,
+      "name": "helm-chart-security-issues",
+      "prompt": "Review the staged changes. This is a Helm chart for deploying an API server to Kubernetes.",
+      "expected_output": "Should flag plaintext secrets in values.yaml, missing security context (no runAsNonRoot, no readOnlyRootFilesystem), no resource limits, hostPath volume, image tag 'latest', no liveness/readiness probes.",
+      "files": ["evals/files/helm-issues/"],
+      "expectations": [
+        "Review identifies plaintext credentials in values.yaml (DATABASE_URL password, JWT_SECRET, or AWS keys) as Critical",
+        "Review flags the missing container security context (no runAsNonRoot, no readOnlyRootFilesystem, or no securityContext at all)",
+        "Review notes that resource limits are empty (resources: {}) which could lead to resource exhaustion",
+        "Review flags the hostPath volume mount as a security concern",
+        "Review identifies image tag 'latest' as problematic for reproducibility or security",
+        "Review notes missing health checks (no liveness or readiness probes)",
+        "Review recommends using Kubernetes Secrets or an external secret manager instead of plaintext values"
+      ]
+    }
+  ]
+}

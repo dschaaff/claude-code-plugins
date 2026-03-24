@@ -1,0 +1,30 @@
+replicaCount: 1
+
+image:
+  repository: mycompany/api-server
+  tag: latest
+  pullPolicy: Always
+
+service:
+  type: LoadBalancer
+  port: 80
+
+env:
+  - name: DATABASE_URL
+    value: "postgres://admin:P@ssw0rd123@prod-db.internal:5432/app"
+  - name: JWT_SECRET
+    value: "my-super-secret-jwt-key-do-not-share"
+  - name: AWS_ACCESS_KEY_ID
+    value: "AKIAIOSFODNN7EXAMPLE"
+  - name: AWS_SECRET_ACCESS_KEY
+    value: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+  - name: REDIS_URL
+    value: "redis://cache.internal:6379"
+
+resources: {}
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

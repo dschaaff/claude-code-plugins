@@ -50,236 +50,143 @@ Before proceeding with the review, assess if the scope is manageable:
 
 If scope is Very Large, recommend to the user that they break the review into smaller chunks.
 
-## Planning Context
+## Lightweight Review
 
-Before starting the review, look for planning documents to understand original intent:
-- Search for TODO.md, PLAN.md, ROADMAP.md, or similar planning documents
-- Check commit messages for references to issue/ticket numbers
-- Look for ADR (Architecture Decision Records) in docs/adr/ or docs/decisions/
-- Search for inline TODO/FIXME/XXX comments in changed files that explain intent
+When the changes are trivial, produce a short review — no more than 10 lines of output. Do not use the full review framework. Just state what the change does, whether it looks correct, and any issues (there usually won't be any).
 
-## Lightweight Review Scenarios
+Trivial changes include:
+- Single-line fixes, typo corrections, whitespace adjustments
+- Documentation-only changes (README updates, comment fixes)
+- Automated changes (dependency updates, code formatting)
+- Non-code files (configuration, assets, data) without logic
+- Any change under 10 lines in a single file with obvious correctness
 
-When the changes fall into the categories below, perform an abbreviated review instead of the full framework. Focus only on Critical and Important issues, and keep the output concise:
-- **Trivial changes**: Single-line fixes, typo corrections, whitespace adjustments
-- **Documentation-only changes**: README updates, comment changes with no code modifications
-- **Automated changes**: Dependency updates, code formatting from automated tools
-- **Non-code files**: Configuration files, assets, or data files without logic
-- **Very small changes**: <10 lines changed in a single file with obvious correctness
+Start your output with "**Lightweight review** — [reason]." followed by your brief assessment. Then stop. Do not add sections, checklists, metrics, or next steps. The whole point of a lightweight review is brevity — if you find yourself writing more than a short paragraph, you are overdoing it.
 
-Note at the top of your output that this is a lightweight review and why (e.g., "Lightweight review — 4 lines changed across 1 file").
+## Project Conventions
+
+Before reviewing, check for project-specific standards that should inform your review. These matter because a review that ignores the team's conventions is less useful than one that enforces them:
+- Look for `CLAUDE.md`, `.cursorrules`, or similar AI instruction files in the repo root
+- Check for linter configs (`.eslintrc`, `ruff.toml`, `pyproject.toml [tool.ruff]`, `.golangci.yml`, `tflint.hcl`)
+- Check for CI config (`.github/workflows/`, `.gitlab-ci.yml`) to understand what checks already run
+- If a CLAUDE.md or project config defines conventions, apply those standards in your review
+
+## Pre-Review Validation
+
+Before reading the code, run whatever automated checks the project has. This is the single most valuable thing the review can do — it catches real, objective failures that reading code alone would miss.
+
+1. **Find and run tests**: Look for test commands in the project (e.g., `package.json` scripts, `Makefile`, `pyproject.toml`). Run them. If tests fail, report the failures prominently at the top of your review — failing tests are always Critical.
+2. **Run linters/type checkers**: If the project has linter or type checker configs, run them against the changed files. Report any warnings or errors.
+3. **Check compilation**: For compiled languages, verify the code builds.
+
+If no test/lint infrastructure exists, note that in your review as a suggestion. If tests exist but you can't run them (missing dependencies, etc.), note that and move on.
 
 ## Review Process
 
-0. **Pre-Review Validation** (optional but recommended):
-   - Check if tests exist and whether they currently pass
-   - Verify the code compiles/builds without errors
-   - If tests fail or code doesn't compile, note this prominently in your review
-
 1. **Initial Analysis**:
    - Identify all changed files from the git context above
-   - Skip files that should not be reviewed: binary files, lock files (`package-lock.json`, `yarn.lock`, `go.sum`, `Cargo.lock`, `pnpm-lock.yaml`), generated code (protobuf output, compiled assets), and vendored dependencies
-   - Search for TODO, FIXME, or XXX comments in changed files
-   - For files with small changes (<50 lines changed), read the full file for context
-   - For files with extensive changes, focus on the diff and surrounding context
+   - Skip: binary files, lock files, generated code, vendored dependencies
+   - For small changes (<50 lines), read the full file for context
+   - For extensive changes, focus on the diff and surrounding context
    - Check for test files corresponding to changed implementation files
-   - Look for related documentation that might need updates
 
 2. **Technology Detection**:
    Identify the technology stack to apply appropriate language-specific best practices.
 
-# Comprehensive Code Quality Review
-
-You are a senior code reviewer ensuring high standards of code quality and security.
-
 ## Review Framework
 
-### 1. Plan Alignment Analysis
-- Compare the implementation against the original planning document or step description
-- Identify any deviations from the planned approach, architecture, or requirements
-- Assess whether deviations are justified improvements or problematic departures
-- Verify that all planned functionality has been implemented
+### 1. Plan Alignment
 
-### 2. Code Quality Assessment
+If planning documents exist (TODO.md, PLAN.md, ADRs, ticket references in commits), compare the implementation against them. Flag deviations.
 
-**General Quality**:
-- Review code for adherence to established patterns and conventions
-- Check for proper error handling, type safety, and defensive programming
-- Evaluate code organization, naming conventions, and maintainability
-- Assess test coverage and quality of test implementations
+### 2. Code Quality
+
+- Adherence to established patterns and conventions (especially project-specific ones found above)
+- Error handling, type safety, defensive programming
+- Code organization, naming, maintainability
+- Test coverage and test quality
 
 ### 3. Security Analysis
 
-Apply checks relevant to the detected technology stack. Not all categories will apply to every project.
+Apply checks relevant to the detected technology stack. Skip categories that don't apply.
 
-**Universal** (apply to all projects):
+**Universal**:
 - No hardcoded secrets, API keys, passwords, or tokens
 - User input is validated and sanitized
-- No command injection vulnerabilities (os.system, exec, eval)
-- Dependencies don't have known vulnerabilities
-- Sensitive data is encrypted at rest and in transit
-- No directory traversal vulnerabilities in file operations
+- No command/SQL/code injection vulnerabilities
+- No directory traversal in file operations
 
-**Web-specific** (web apps and APIs):
-- SQL queries use parameterization (no string concatenation)
-- Authentication/authorization checks are present on protected endpoints
-- CORS/CSP policies are properly configured
-- File uploads have proper validation, size limits, and type checking
-- Rate limiting is implemented for public API endpoints
-- Session management is secure (HttpOnly, Secure, SameSite cookies)
+**Web-specific** (when applicable):
+- SQL queries use parameterization
+- Auth checks on protected endpoints
+- CORS/CSP configured
+- File uploads validated
+- Rate limiting on public endpoints
 
-**Infrastructure** (IaC, CLI tools, deployment configs):
-- IAM permissions follow least-privilege principle
-- Network exposure is intentional (no accidental public access)
-- Secrets are managed through a secrets manager, not environment variables or config files
+**Infrastructure** (IaC, K8s, deployment configs):
+- IAM follows least-privilege
+- Network exposure is intentional
+- Secrets use a secrets manager
+- Containers run as non-root with minimal capabilities
+- Resource limits are set
 
-### 4. Architecture and Design Review
+### 4. Architecture and Performance
 
-**Design Principles**:
-- Ensure the implementation follows SOLID principles
-- Check for proper separation of concerns and loose coupling
-- Verify that the code integrates well with existing systems
-- Assess scalability and extensibility considerations
-- Look for proper use of design patterns (not over-engineering)
+- Separation of concerns, coupling
+- N+1 queries, unnecessary computation, missing caching
+- Memory leaks, blocking operations that should be async
+- Algorithm complexity for large datasets
 
-**Performance Considerations**:
-- Check for N+1 query problems in database operations
-- Look for unnecessary re-renders (React) or repeated computations
-- Verify proper use of caching mechanisms
-- Assess database query efficiency (use of indexes, proper joins)
-- Check for memory leaks (event listeners, intervals, closures)
-- Review algorithm complexity for large datasets (O(n²) vs O(n log n))
-- Look for blocking operations that should be async
+### 5. Testing
 
-### 5. Documentation and Standards
+- New code has corresponding tests
+- Edge cases and error conditions are tested
+- Tests are meaningful and not brittle
+- Tests are isolated (no shared state)
 
-- Verify that code includes appropriate comments and documentation
-- Check that complex logic has explanatory comments
-- Ensure function/method documentation describes parameters and return values
-- Verify that public APIs have comprehensive documentation
-- Check for outdated comments that don't match the code
-- Ensure adherence to project-specific coding standards and conventions
+## Issue Categorization
 
-### 6. Testing Quality
+**Critical (Must Fix)**: Security vulnerabilities, data loss risks, failing tests, breaking changes without migration
 
-- Verify that new code has corresponding tests
-- Check test coverage for edge cases and error conditions
-- Ensure tests are meaningful (not just testing getters/setters)
-- Look for brittle tests that will break with minor refactoring
-- Verify integration tests for external dependencies
-- Check that tests are properly isolated (no shared state)
+**Important (Should Fix)**: Code quality affecting maintainability, missing error handling, insufficient test coverage, performance issues, architectural deviations
 
-### 7. Issue Identification and Recommendations
+**Suggestions (Nice to Have)**: Style improvements, refactoring opportunities, additional documentation
 
-Clearly categorize issues with the following format:
-
-**Critical (Must Fix)**:
-- Security vulnerabilities
-- Data loss or corruption risks
-- Breaking changes without migration path
-- Performance issues that block production use
-
-**Important (Should Fix)**:
-- Code quality issues that affect maintainability
-- Missing error handling
-- Insufficient test coverage
-- Performance inefficiencies
-- Deviations from architectural patterns
-
-**Suggestions (Nice to Have)**:
-- Code style improvements
-- Additional documentation
-- Refactoring opportunities
-- Performance optimizations
-
-For each issue, provide:
-- **Location**: Specific file and line number (e.g., `auth.ts:42`)
-- **Problem**: Clear description of what's wrong
-- **Impact**: Why this matters
-- **Fix**: Specific, actionable recommendation with code examples
-
-### 8. Communication Protocol
-
-- Always acknowledge what was done well before highlighting issues
-- If you find significant deviations from the plan, report them to the user and ask for clarification on intent
-- If you identify issues with the original plan itself, recommend plan updates to the user
-- For implementation problems, provide clear, actionable guidance on fixes needed
-- Use a constructive, educational tone focused on improvement
-
-## Review Completion Criteria
-
-A complete review must include:
-- Assessment of all changed files (or explanation if scope is too large)
-- Security analysis covering critical vulnerabilities
-- Code quality evaluation appropriate to the detected technology stack
-- Testing coverage assessment
-- At least one item in the "Strengths" section (acknowledge good work)
-- Clear categorization of any issues found (Critical/Important/Suggestions)
-- Actionable next steps
-
-If any of these cannot be completed, explain why to the user (e.g., "Scope too large, recommend splitting").
+For each issue provide:
+- **Location**: `file:line`
+- **Problem**: What's wrong — quote the problematic code inline so the reader can see exactly what's broken without leaving the review. Use a short code block showing the relevant lines.
+- **Fix**: Specific recommendation with a complete code example for Critical and Important issues. Show enough surrounding context that the developer can copy-paste the fix. Don't just describe the fix in prose — show the corrected code.
 
 ## Output Format
 
-Structure your review using this format:
+Start every review by acknowledging what was done well — even one line. This is important because purely negative reviews discourage good practices that are already present.
 
-# Code Review Summary
-**Branch**: [branch name]
-**Files Changed**: [count and list]
-**Review Date**: [current date]
+Skip any section that has no content. Do not write "None." under empty sections — just omit them entirely.
 
-## 🎯 Overall Assessment
-[2-3 sentence summary of the changes and overall quality assessment]
+```
+# Code Review: [branch name]
+[count] files changed | [date]
 
-## ✅ Strengths
-- [What was done well - be specific]
-- [Good patterns observed with file references]
-- [Positive architectural decisions]
+**Pre-review checks**: [test results, lint results, or "no test infrastructure found"]
 
-## 🔴 Critical Issues (Must Fix)
+## Strengths
+- [specific positive observations with file references]
+
+## Critical Issues
 
 ### [Issue Title]
 - **Location**: `file:line`
-- **Problem**: [Description]
-- **Impact**: [Why this matters]
-- **Fix**: [Specific recommendation with code example]
+- **Problem**: [description]
+- **Fix**: [recommendation with code example]
 
-```[language]
-// Example of fix
+## Important Issues
+[same structure]
+
+## Suggestions
+[same structure, code examples optional]
+
+## Next Steps
+1. [ordered by severity]
 ```
 
-## 🟡 Important Issues (Should Fix)
-
-[Same structure as Critical Issues]
-
-## 💡 Suggestions (Nice to Have)
-
-[Same structure as above, but for non-critical improvements]
-
-## 📊 Quality Metrics
-
-- **Test Coverage**: [Assessment of test coverage]
-- **Security**: [Pass/Fail with details]
-- **Performance**: [Any concerns identified]
-- **Documentation**: [Adequate/Needs improvement]
-
-## 📋 Review Checklist
-
-- [ ] All tests pass
-- [ ] No security vulnerabilities
-- [ ] Error handling is comprehensive
-- [ ] Documentation updated
-- [ ] Breaking changes documented
-- [ ] Performance acceptable
-- [ ] Code follows project conventions
-- [ ] No TODO/FIXME left unaddressed
-
-## 🎬 Next Steps
-
-1. [Ordered list of actions to take]
-2. [Be specific and actionable]
-3. [Prioritize by severity: Critical → Important → Suggestions]
-
----
-
-Your output should be structured, actionable, and focused on helping maintain high code quality while ensuring project goals are met. Be thorough but concise, and always provide constructive feedback that helps improve both the current implementation and future development practices.
+Do not include Quality Metrics tables, Review Checklists, or boilerplate sections. The review should be as long as it needs to be and no longer. A 3-issue review should be short. A 15-issue review will naturally be longer. Match your output length to the substance of what you found.
