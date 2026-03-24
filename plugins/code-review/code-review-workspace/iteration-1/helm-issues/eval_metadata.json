@@ -1,0 +1,14 @@
+{
+  "eval_id": 6,
+  "eval_name": "helm-chart-security-issues",
+  "prompt": "Review the staged changes. This is a Helm chart for deploying an API server to Kubernetes.",
+  "assertions": [
+    "Review identifies plaintext credentials in values.yaml (DATABASE_URL password, JWT_SECRET, or AWS keys) as Critical",
+    "Review flags the missing container security context (no runAsNonRoot, no readOnlyRootFilesystem, or no securityContext at all)",
+    "Review notes that resource limits are empty (resources: {}) which could lead to resource exhaustion",
+    "Review flags the hostPath volume mount as a security concern",
+    "Review identifies image tag 'latest' as problematic for reproducibility or security",
+    "Review notes missing health checks (no liveness or readiness probes)",
+    "Review recommends using Kubernetes Secrets or an external secret manager instead of plaintext values"
+  ]
+}

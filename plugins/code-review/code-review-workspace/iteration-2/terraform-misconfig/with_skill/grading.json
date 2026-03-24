@@ -1,0 +1,95 @@
+{
+  "expectations": [
+    {
+      "text": "Review identifies the IAM policy with Action=* and Resource=* as a Critical security issue",
+      "passed": true,
+      "evidence": "Critical Issue #2 in review.md: 'IAM policy grants full admin access (`Action: *, Resource: *`)' at main.tf:66-75. Explicitly categorized as Critical, describes the risk ('compromised EC2 instance with this role can delete accounts, exfiltrate data'), and provides a scoped replacement policy."
+    },
+    {
+      "text": "Review flags the S3 bucket as publicly accessible (public access block all set to false, Principal=* in policy)",
+      "passed": true,
+      "evidence": "Critical Issue #3 in review.md: 'S3 bucket is publicly readable (data exfiltration risk)' at main.tf:19-46. States 'The public access block is fully disabled and a bucket policy grants s3:GetObject and s3:ListBucket to Principal: *'. Both the disabled public access block and the wildcard principal are called out."
+    },
+    {
+      "text": "Review identifies the hardcoded database password in the aws_db_instance resource",
+      "passed": true,
+      "evidence": "Critical Issue #1 in review.md: 'Hardcoded database password in plaintext' at main.tf:88. Names the specific value 'SuperSecret123!' and explains it will appear in state, plan output, and CI logs. Recommends Secrets Manager or sensitive variable."
+    },
+    {
+      "text": "Review flags the RDS instance as publicly accessible",
+      "passed": true,
+      "evidence": "Critical Issue #4 in review.md: 'RDS instance is publicly accessible with 0.0.0.0/0 ingress' at main.tf:91 and main.tf:99-105. States 'publicly_accessible = true gives the database a public IP' and recommends setting it to false with private subnets."
+    },
+    {
+      "text": "Review notes that storage_encrypted is false on the database",
+      "passed": true,
+      "evidence": "Critical Issue #5 in review.md: 'RDS storage is unencrypted' at main.tf:90. States 'storage_encrypted = false means data at rest on the production database is not encrypted' and references compliance frameworks (SOC 2, HIPAA, PCI-DSS)."
+    },
+    {
+      "text": "Review flags the security group allowing ingress from 0.0.0.0/0 on port 5432",
+      "passed": true,
+      "evidence": "Critical Issue #4 in review.md covers this: 'the security group allows port 5432 from any IP on the internet' at main.tf:99-105. The fix shows restricting ingress to security_groups instead of 0.0.0.0/0."
+    },
+    {
+      "text": "Review notes missing backup configuration (backup_retention_period = 0) or disabled deletion protection",
+      "passed": true,
+      "evidence": "Important Issue #6 in review.md: 'No backups configured and no deletion protection' at main.tf:93-94. States 'backup_retention_period = 0 disables automated backups entirely' and 'deletion_protection = false means a terraform destroy...deletes the production database with no recovery path'. Also notes skip_final_snapshot = true as compounding factor."
+    },
+    {
+      "text": "Review applies infrastructure-specific security checks (least privilege, network exposure, secrets management)",
+      "passed": true,
+      "evidence": "The review systematically applies all three infrastructure security categories from the code-reviewer.md agent instructions: (1) Least privilege: Critical Issue #2 on IAM Action/Resource wildcards, (2) Network exposure: Critical Issues #3 (public S3) and #4 (public RDS + open security group), (3) Secrets management: Critical Issue #1 on hardcoded password with recommendation to use Secrets Manager/SSM. The review also notes it checked for tflint/tfsec infrastructure."
+    }
+  ],
+  "summary": {
+    "passed": 8,
+    "failed": 0,
+    "total": 8,
+    "pass_rate": 1.0
+  },
+  "execution_metrics": {
+    "output_chars": 7380,
+    "transcript_chars": 44650
+  },
+  "timing": {
+    "total_duration_seconds": 61.6
+  },
+  "claims": [
+    {
+      "claim": "The review identified 5 Critical, 3 Important, and 2 Suggestion-level issues",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Counted in review.md: Critical Issues #1-5, Important Issues #6-8, Suggestions #9-10. Matches the claimed counts."
+    },
+    {
+      "claim": "No test or lint infrastructure was found in the repo",
+      "type": "factual",
+      "verified": true,
+      "evidence": "The eval repo at /tmp/claude/eval-repo-zm9U24 contained only main.tf and .git directory, as shown by the 'ls -la' output in the transcript."
+    },
+    {
+      "claim": "The security group is not attached to the RDS instance",
+      "type": "factual",
+      "verified": true,
+      "evidence": "The staged main.tf shows aws_db_instance.main has no vpc_security_group_ids attribute, and aws_security_group.db is never referenced by the RDS resource. This is a valid observation beyond the expected assertions."
+    },
+    {
+      "claim": "S3 bucket missing versioning and server-side encryption",
+      "type": "factual",
+      "verified": true,
+      "evidence": "The staged main.tf contains no aws_s3_bucket_versioning or aws_s3_bucket_server_side_encryption_configuration resources."
+    }
+  ],
+  "user_notes_summary": null,
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "reason": "No assertion checks whether the review provides actionable fix recommendations (code examples) for the issues it identifies. The review included detailed HCL code fixes for every critical and important issue, which is a quality signal worth capturing. An assertion like 'Review provides code-level fix suggestions for critical issues' would verify the review goes beyond identification to remediation."
+      },
+      {
+        "reason": "No assertion checks whether the security group is flagged as not actually attached to the RDS instance (no vpc_security_group_ids). The review caught this as Important Issue #7 -- it's a subtle but real misconfiguration that means the 0.0.0.0/0 ingress rule doesn't even apply to the database, and the DB may be using the default security group instead."
+      }
+    ],
+    "overall": "Strong assertion set that covers all major security categories. The assertions are discriminating -- each one targets a specific, concrete misconfiguration that requires genuinely reading and understanding the Terraform code. The two suggestions above would add coverage for fix quality and a subtle architectural issue."
+  }
+}

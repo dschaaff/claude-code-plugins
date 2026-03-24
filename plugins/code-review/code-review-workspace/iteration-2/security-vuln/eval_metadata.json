@@ -1,0 +1,14 @@
+{
+  "eval_id": 1,
+  "eval_name": "security-vuln-python-flask",
+  "prompt": "Review the staged changes in this repo. It's a Python Flask API for user management.",
+  "assertions": [
+    "Review identifies SQL injection vulnerability in the search_users or create_user function as Critical",
+    "Review flags the hardcoded API_KEY string as a Critical or Important security issue",
+    "Review notes that password_hash is exposed in the GET /users/<id> response",
+    "Review flags debug=True or host=0.0.0.0 as a security concern for production",
+    "Review follows the structured output format with sections for Critical Issues, Important Issues, and Suggestions",
+    "Review includes a Strengths section that acknowledges at least one positive aspect",
+    "Review provides specific file:line references for identified issues"
+  ]
+}

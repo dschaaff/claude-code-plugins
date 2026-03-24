@@ -1,0 +1,10 @@
+{
+  "eval_id": 3,
+  "eval_name": "trivial-one-line-typo",
+  "prompt": "Review the staged changes. It's a one-line fix to a comment in the README.",
+  "assertions": [
+    "Review explicitly notes this is a lightweight review or mentions the change is trivial",
+    "Review does NOT produce full Critical/Important/Suggestions sections with detailed content",
+    "Review is noticeably shorter than a full review — the response should be concise and proportional to the change"
+  ]
+}

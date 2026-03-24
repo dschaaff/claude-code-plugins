@@ -1,0 +1,91 @@
+{
+  "expectations": [
+    {
+      "text": "Review identifies plaintext credentials in values.yaml as Critical",
+      "passed": true,
+      "evidence": "Critical section 'Hardcoded secrets in values.yaml' at values.yaml:13-20 states: 'Production database credentials, JWT secret, and AWS access keys are hardcoded in plain text. These will be committed to version control and visible to anyone with repo access.'"
+    },
+    {
+      "text": "Review flags the missing container security context",
+      "passed": true,
+      "evidence": "Critical section 'No container security context' at templates/deployment.yaml:18-27 states: 'The container runs as root by default with full Linux capabilities. A container escape or application vulnerability gives the attacker root on the node.' Provides a full securityContext fix."
+    },
+    {
+      "text": "Review notes that resource limits are empty",
+      "passed": true,
+      "evidence": "Important section 'No resource requests or limits' at values.yaml:27 quotes 'resources: {}' and explains: 'no CPU/memory requests or limits. The scheduler cannot make informed placement decisions, and a single pod can consume all node resources, starving other workloads.'"
+    },
+    {
+      "text": "Review flags the hostPath volume mount as a security concern",
+      "passed": true,
+      "evidence": "Critical section 'hostPath volume in deployment' at templates/deployment.yaml:31-34 states: 'They also pose a security risk since a compromised container could access or modify host files. Most admission controllers (OPA/Gatekeeper, Kyverno) block hostPath in production.'"
+    },
+    {
+      "text": "Review identifies image tag 'latest' as problematic",
+      "passed": true,
+      "evidence": "Important section 'Image tag set to latest' at values.yaml:4 quotes 'tag: latest' and explains: 'deployments are not reproducible... Rollbacks become impossible because there is no way to identify which version was running.'"
+    },
+    {
+      "text": "Review notes missing health checks (no liveness or readiness probes)",
+      "passed": true,
+      "evidence": "Important section 'No liveness or readiness probes' at templates/deployment.yaml:18-27 states: 'Without probes, Kubernetes cannot detect if the application has crashed or is unable to serve traffic. Failed pods will continue receiving requests.' Provides both livenessProbe and readinessProbe examples."
+    },
+    {
+      "text": "Review recommends using Kubernetes Secrets or external secret manager",
+      "passed": true,
+      "evidence": "The fix for hardcoded secrets explicitly says: 'Use Kubernetes Secrets (or an external secrets manager like AWS Secrets Manager / HashiCorp Vault with the External Secrets Operator).' Shows secretKeyRef examples in the deployment template."
+    },
+    {
+      "text": "Review quotes the problematic YAML code inline before showing the fix",
+      "passed": true,
+      "evidence": "Most issues quote the problematic YAML in a code block under 'Problem' before the 'Fix' section. Examples: secrets issue quotes the env block (lines 16-26), hostPath quotes the volumes block (lines 68-73), resources quotes 'resources: {}' (lines 116-118), latest tag quotes 'tag: latest' (lines 142-143). One exception: the security context issue describes the problem without quoting the existing YAML, but the pattern holds for the majority of issues."
+    }
+  ],
+  "summary": {
+    "passed": 8,
+    "failed": 0,
+    "total": 8,
+    "pass_rate": 1.0
+  },
+  "timing": {
+    "total_duration_seconds": 78.8
+  },
+  "claims": [
+    {
+      "claim": "helm lint passes with one info-level note about missing icon",
+      "type": "process",
+      "verified": true,
+      "evidence": "Transcript shows helm lint output: '[INFO] Chart.yaml: icon is recommended' and '1 chart(s) linted, 0 chart(s) failed'"
+    },
+    {
+      "claim": "3 files changed",
+      "type": "factual",
+      "verified": true,
+      "evidence": "git diff --name-only --cached shows: Chart.yaml, templates/deployment.yaml, values.yaml"
+    },
+    {
+      "claim": "values.yaml defines service.type and service.port but no Service template exists",
+      "type": "factual",
+      "verified": true,
+      "evidence": "git status shows only Chart.yaml, templates/deployment.yaml, and values.yaml staged. No templates/service.yaml exists. The diff confirms service config in values.yaml at lines 9-11."
+    },
+    {
+      "claim": "The container runs as root by default",
+      "type": "factual",
+      "verified": true,
+      "evidence": "The deployment.yaml has no securityContext defined. Kubernetes defaults to running as root when no runAsUser or runAsNonRoot is specified."
+    }
+  ],
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "assertion": "Review quotes the problematic YAML code inline before showing the fix",
+        "reason": "This assertion is somewhat ambiguous -- it could mean every issue quotes inline, or that the review generally follows this pattern. The security context issue describes the problem without quoting existing YAML. Consider tightening to 'every Critical/Important issue quotes the problematic code' or loosening to 'at least N issues quote code inline' for a more discriminating test."
+      },
+      {
+        "reason": "No assertion checks whether issues are correctly categorized by severity. The review places hostPath and security context under Critical and resource limits under Important, which are reasonable but debatable choices. An assertion like 'credentials are rated higher severity than missing probes' would test the reviewer's judgment."
+      }
+    ],
+    "overall": "Assertions cover the key issues well. The main gap is the ambiguity in expectation 8 around whether 'quotes inline' means universally or generally."
+  }
+}

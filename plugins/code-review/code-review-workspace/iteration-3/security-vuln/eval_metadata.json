@@ -1,0 +1,15 @@
+{
+  "eval_id": 1,
+  "eval_name": "security-vuln",
+  "prompt": "Review the staged changes in this repo. It's a Python Flask API for user management.",
+  "assertions": [
+    {"text": "Review identifies SQL injection vulnerability as Critical", "type": "qualitative"},
+    {"text": "Review flags the hardcoded API_KEY string as a security issue", "type": "qualitative"},
+    {"text": "Review notes that password_hash is exposed in the GET response", "type": "qualitative"},
+    {"text": "Review flags debug=True or host=0.0.0.0 as a security concern", "type": "qualitative"},
+    {"text": "Review follows structured output format with Critical/Important/Suggestions sections", "type": "qualitative"},
+    {"text": "Review includes a Strengths section acknowledging at least one positive aspect", "type": "qualitative"},
+    {"text": "Review provides specific file:line references for identified issues", "type": "qualitative"},
+    {"text": "Review quotes the problematic code inline before showing the fix", "type": "qualitative"}
+  ]
+}

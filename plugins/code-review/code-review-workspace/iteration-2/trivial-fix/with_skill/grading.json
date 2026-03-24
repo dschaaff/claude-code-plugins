@@ -1,0 +1,65 @@
+{
+  "expectations": [
+    {
+      "text": "Review explicitly notes this is a lightweight review or mentions the change is trivial",
+      "passed": true,
+      "evidence": "Review opens with: '**Lightweight review** -- documentation-only change, single-line comment fix.' This explicitly identifies itself as a lightweight review and calls out the trivial nature of the change."
+    },
+    {
+      "text": "Review does NOT produce full Critical/Important/Suggestions sections with detailed content",
+      "passed": true,
+      "evidence": "The review output is a single paragraph with no section headers, no '## Critical Issues', no '## Important Issues', no '## Suggestions', and no structured issue entries. It skips the full review framework entirely."
+    },
+    {
+      "text": "Review is noticeably shorter than a full review — the response should be concise and proportional to the change",
+      "passed": true,
+      "evidence": "The entire review is 3 lines and approximately 50 words. A full review would include multiple sections (Strengths, Critical Issues, Important Issues, Suggestions, Next Steps) and typically runs hundreds of words. This is clearly proportional to a one-line comment fix."
+    }
+  ],
+  "summary": {
+    "passed": 3,
+    "failed": 0,
+    "total": 3,
+    "pass_rate": 1.0
+  },
+  "execution_metrics": {
+    "tool_calls": {
+      "ToolSearch": 1,
+      "Read": 1,
+      "Bash": 2,
+      "Write": 1
+    },
+    "total_tool_calls": 5,
+    "total_steps": 5,
+    "errors_encountered": 0,
+    "output_chars": 282,
+    "transcript_chars": 18742
+  },
+  "timing": {
+    "total_duration_seconds": 21.6
+  },
+  "claims": [
+    {
+      "claim": "The staged diff adds a new README.md (22 lines) and a README.md.patch file",
+      "type": "factual",
+      "verified": true,
+      "evidence": "The git diff --cached output in the transcript shows README.md with 22 added lines and a README.md.patch file with 6 lines."
+    },
+    {
+      "claim": "capitalize only uppercases the first letter of the string, not each word",
+      "type": "factual",
+      "verified": true,
+      "evidence": "The README.md.patch file in the diff states: 'capitalize() only capitalizes the first letter of the string, not each word.' The review correctly reflects this."
+    },
+    {
+      "claim": "The fix is correct",
+      "type": "quality",
+      "verified": true,
+      "evidence": "The change from '// \"Hello World\"' to '// \"Hello world\"' correctly reflects what a capitalize() function that only uppercases the first letter would produce. The review's assessment is accurate."
+    }
+  ],
+  "eval_feedback": {
+    "suggestions": [],
+    "overall": "No suggestions. The assertions are well-targeted for this scenario: they check that the reviewer recognized the change as trivial, used the lightweight format, and kept the output short. These are the key behavioral signals for a trivial-change review."
+  }
+}

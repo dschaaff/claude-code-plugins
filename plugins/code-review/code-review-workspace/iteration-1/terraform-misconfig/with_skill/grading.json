@@ -1,0 +1,106 @@
+{
+  "expectations": [
+    {
+      "text": "Review identifies the IAM policy with Action=* and Resource=* as a Critical security issue",
+      "passed": true,
+      "evidence": "Critical Issue #3 in review.md: 'IAM policy grants full admin access (`Action = \"*\"`, `Resource = \"*\"`)' at main.tf:65-75. Correctly categorized under 'Critical Issues (Must Fix)' and explains the least-privilege violation and blast radius."
+    },
+    {
+      "text": "Review flags the S3 bucket as publicly accessible (public access block all set to false, Principal=* in policy)",
+      "passed": true,
+      "evidence": "Critical Issue #2 in review.md: 'S3 bucket is publicly readable' — explicitly notes 'The public access block is fully disabled (all four settings set to false) and a bucket policy grants s3:GetObject and s3:ListBucket to Principal = \"*\"'. Both the disabled public access block and the wildcard principal are called out."
+    },
+    {
+      "text": "Review identifies the hardcoded database password in the aws_db_instance resource",
+      "passed": true,
+      "evidence": "Critical Issue #1 in review.md: 'Hardcoded database password in plaintext' at main.tf:87. Explicitly names the password 'SuperSecret123!' and notes it will appear in state files, version control, and plan outputs. Recommends Secrets Manager or sensitive variable."
+    },
+    {
+      "text": "Review flags the RDS instance as publicly accessible",
+      "passed": true,
+      "evidence": "Critical Issue #4 in review.md: 'RDS instance is publicly accessible' at main.tf:91. Notes 'publicly_accessible = true exposes the database endpoint to the public internet' and recommends setting it to false with private subnet placement."
+    },
+    {
+      "text": "Review notes that storage_encrypted is false on the database",
+      "passed": true,
+      "evidence": "Critical Issue #6 in review.md: 'RDS storage encryption is disabled' at main.tf:90. States 'storage_encrypted = false means the production database data is stored unencrypted on disk' and cites compliance implications (SOC2, HIPAA, PCI-DSS, GDPR)."
+    },
+    {
+      "text": "Review flags the security group allowing ingress from 0.0.0.0/0 on port 5432",
+      "passed": true,
+      "evidence": "Critical Issue #5 in review.md: 'Security group allows database access from the entire internet' at main.tf:99-105. Explicitly states 'The ingress rule allows TCP port 5432 from 0.0.0.0/0, meaning any IP address can attempt to connect to the PostgreSQL database.'"
+    },
+    {
+      "text": "Review notes missing backup configuration (backup_retention_period = 0) or disabled deletion protection",
+      "passed": true,
+      "evidence": "Important Issue #1: 'No backups configured for the production database' — notes 'backup_retention_period = 0 disables automated backups entirely'. Important Issue #2: 'Deletion protection is disabled' — notes 'deletion_protection = false allows the database to be destroyed'. Both are covered."
+    },
+    {
+      "text": "Review applies infrastructure-specific security checks (least privilege, network exposure, secrets management)",
+      "passed": true,
+      "evidence": "The review systematically applies all three infrastructure security dimensions from the code-reviewer.md skill: (1) Least privilege — Critical Issue #3 on IAM Action=*/Resource=*; (2) Network exposure — Critical Issues #2 (public S3), #4 (public RDS), #5 (open security group); (3) Secrets management — Critical Issue #1 on hardcoded password with recommendation to use Secrets Manager. The review also noted the security group is not attached to the RDS instance (Important Issue #6), showing deeper infrastructure analysis."
+    }
+  ],
+  "summary": {
+    "passed": 8,
+    "failed": 0,
+    "total": 8,
+    "pass_rate": 1.0
+  },
+  "execution_metrics": {
+    "tool_calls": {
+      "ToolSearch": 1,
+      "Read": 1,
+      "Bash": 4,
+      "Glob": 1,
+      "Write": 1
+    },
+    "total_tool_calls": 8,
+    "total_steps": 8,
+    "errors_encountered": 1,
+    "output_chars": 7842,
+    "transcript_chars": 42580
+  },
+  "timing": {
+    "total_duration_seconds": 82.6
+  },
+  "claims": [
+    {
+      "claim": "6 critical security vulnerabilities identified",
+      "type": "factual",
+      "verified": true,
+      "evidence": "The review lists exactly 6 items under 'Critical Issues (Must Fix)': hardcoded password, public S3, IAM wildcard, public RDS, open security group, unencrypted storage."
+    },
+    {
+      "claim": "All four public access block settings are set to false",
+      "type": "factual",
+      "verified": true,
+      "evidence": "The staged diff confirms block_public_acls=false, block_public_policy=false, ignore_public_acls=false, restrict_public_buckets=false."
+    },
+    {
+      "claim": "The security group is not attached to the RDS instance",
+      "type": "factual",
+      "verified": true,
+      "evidence": "The staged diff shows the aws_db_instance resource has no vpc_security_group_ids attribute. The review correctly identifies this as Important Issue #6."
+    },
+    {
+      "claim": "The password SuperSecret123! is hardcoded at main.tf:87",
+      "type": "factual",
+      "verified": true,
+      "evidence": "The staged diff shows 'password = \"SuperSecret123!\"' in the aws_db_instance resource. Line 87 corresponds correctly in the 112-line file."
+    }
+  ],
+  "user_notes_summary": null,
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "reason": "No assertion checks whether the review provides actionable fix recommendations (code examples, specific Terraform attributes to change). The review excels here with HCL code blocks for every critical issue, but this quality goes unmeasured. A discriminating assertion like 'Review provides at least 3 concrete HCL fix examples' would reward thorough reviews over those that just list problems."
+      },
+      {
+        "assertion": "Review applies infrastructure-specific security checks (least privilege, network exposure, secrets management)",
+        "reason": "This assertion is broad enough that a review mentioning any one of these three areas in passing would arguably satisfy it. Consider splitting into three separate assertions or requiring all three to be explicitly addressed with file:line references."
+      }
+    ],
+    "overall": "The assertions are well-chosen and cover the major security issues in the Terraform config. All 8 passed with strong evidence. The one area for improvement is that the assertions focus on issue detection but not on fix quality, which is a key differentiator between a useful review and a superficial one."
+  }
+}

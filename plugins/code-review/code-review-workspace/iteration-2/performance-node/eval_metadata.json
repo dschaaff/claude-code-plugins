@@ -1,0 +1,13 @@
+{
+  "eval_id": 2,
+  "eval_name": "performance-node-n-plus-1",
+  "prompt": "Review the staged changes. This is a Node.js task management service.",
+  "assertions": [
+    "Review identifies the N+1 query problem in getTasksWithAssignees as an Important or Critical performance issue",
+    "Review flags missing await on db.query or fetch calls in updateTaskStatus",
+    "Review identifies the XSS vulnerability in buildTaskReport where task data is interpolated into HTML without escaping",
+    "Review notes that deleteCompletedTasks lacks a transaction and could leave data in an inconsistent state",
+    "Review provides actionable fix recommendations with code examples for at least one issue",
+    "Review categorizes issues using the Critical/Important/Suggestions framework"
+  ]
+}

@@ -1,0 +1,80 @@
+{
+  "expectations": [
+    {
+      "text": "Review acknowledges the code quality positively in the Strengths section",
+      "passed": true,
+      "evidence": "The review has a '## Strengths' section with 7 specific positive observations: 'Clean separation between ListItems and GetItem handlers', 'Good input validation: page/per_page are clamped to sensible defaults', 'Proper auth check at the top of every handler', correct error differentiation, structured logging, test coverage, and correct httptest usage."
+    },
+    {
+      "text": "Review notes the presence of tests and comments on test quality",
+      "passed": true,
+      "evidence": "Strengths section states 'Test coverage includes the happy path, not-found, unauthorized, and invalid pagination parameters' and 'Tests use httptest correctly and verify both status codes and response body contents.' The Suggestions section also identifies specific missing test cases (GetItem happy path, invalid ID, ListItems unauthorized), demonstrating substantive engagement with test quality."
+    },
+    {
+      "text": "Review does NOT flag any Critical issues",
+      "passed": true,
+      "evidence": "The review contains no '## Critical Issues' section. The only issue sections are '## Suggestions' (Nice to Have level). The review correctly omitted empty sections per the skill instructions rather than writing 'None.'"
+    },
+    {
+      "text": "Review mentions good patterns like proper error handling or pagination bounds checking",
+      "passed": true,
+      "evidence": "Strengths section explicitly calls out: 'Good input validation: page/per_page are clamped to sensible defaults rather than returning errors for bad values' (pagination bounds checking), 'GetItem correctly distinguishes store.ErrNotFound from unexpected errors, returning 404 vs 500' (error handling), and 'Proper auth check at the top of every handler using context values' (auth pattern)."
+    },
+    {
+      "text": "Review follows the structured output format",
+      "passed": true,
+      "evidence": "The review follows the skill's prescribed format: '# Code Review: main' title with '2 files changed | 2026-03-24', '**Pre-review checks**' line, '## Strengths' with bullet points, '## Suggestions' with issues containing Location/Problem/Fix fields, and '## Next Steps' with ordered list. Empty sections (Critical Issues, Important Issues) are omitted rather than shown with 'None', matching the skill instructions."
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "failed": 0,
+    "total": 5,
+    "pass_rate": 1.0
+  },
+  "execution_metrics": {
+    "output_chars": 3292,
+    "transcript_chars": 52847
+  },
+  "timing": {
+    "total_duration_seconds": 63.2
+  },
+  "claims": [
+    {
+      "claim": "2 files changed with 173 total lines",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Git diff stat in transcript shows 'handler.go | 79' and 'handler_test.go | 94', totaling 173 insertions. Git status confirms 2 new files staged."
+    },
+    {
+      "claim": "No go.mod, Makefile, or linter configuration found",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Transcript shows 'ls -la CLAUDE.md .golangci.yml go.mod Makefile' returned 'No project config files found', and 'ls -la' of the repo shows only handler.go, handler_test.go, and .git directory."
+    },
+    {
+      "claim": "GetItem is tested for not-found and unauthorized but not the happy path",
+      "type": "factual",
+      "verified": true,
+      "evidence": "The staged diff shows TestGetItem_NotFound and TestGetItem_Unauthorized but no TestGetItem_Success or equivalent happy-path test."
+    },
+    {
+      "claim": "page/per_page are clamped to sensible defaults",
+      "type": "factual",
+      "verified": true,
+      "evidence": "handler.go lines 21-28 show: page < 1 defaults to 1, perPage < 1 or > 100 defaults to 20."
+    }
+  ],
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "assertion": "Review acknowledges the code quality positively in the Strengths section",
+        "reason": "This assertion would pass if the Strengths section contained a single vague compliment like 'Code looks good.' Consider requiring that strengths reference specific code patterns or file locations to ensure genuine analysis."
+      },
+      {
+        "reason": "No assertion checks whether the review avoids false positives -- flagging issues that are not actually issues in well-written code. For a 'clean code' eval, verifying that the review does not invent Important-level issues would be a strong discriminating assertion."
+      }
+    ],
+    "overall": "Assertions cover the key dimensions (positive tone, test awareness, no false critical flags, pattern recognition, format compliance). The two suggestions above would strengthen discrimination between genuine reviews and surface-level compliance."
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "eval_id": 5,
+  "eval_name": "terraform-misconfig",
+  "prompt": "Review the staged Terraform changes. This defines AWS infrastructure for a production analytics platform.",
+  "assertions": [
+    {"text": "Review identifies the IAM policy with Action=* and Resource=* as Critical", "type": "qualitative"},
+    {"text": "Review flags the S3 bucket as publicly accessible", "type": "qualitative"},
+    {"text": "Review identifies the hardcoded database password", "type": "qualitative"},
+    {"text": "Review flags the RDS instance as publicly accessible", "type": "qualitative"},
+    {"text": "Review notes that storage_encrypted is false on the database", "type": "qualitative"},
+    {"text": "Review flags the security group allowing 0.0.0.0/0 on port 5432", "type": "qualitative"},
+    {"text": "Review notes missing backup configuration or disabled deletion protection", "type": "qualitative"},
+    {"text": "Review applies infrastructure-specific security checks", "type": "qualitative"},
+    {"text": "Review quotes the problematic HCL code inline before showing the fix", "type": "qualitative"}
+  ]
+}

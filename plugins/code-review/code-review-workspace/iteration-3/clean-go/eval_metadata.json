@@ -1,0 +1,12 @@
+{
+  "eval_id": 4,
+  "eval_name": "clean-go",
+  "prompt": "Review the staged changes. This is a Go HTTP handler with tests for a paginated items API.",
+  "assertions": [
+    {"text": "Review acknowledges the code quality positively in the Strengths section", "type": "qualitative"},
+    {"text": "Review notes the presence of tests and comments on test quality", "type": "qualitative"},
+    {"text": "Review does NOT flag any Critical issues", "type": "qualitative"},
+    {"text": "Review mentions good patterns like proper error handling or pagination bounds checking", "type": "qualitative"},
+    {"text": "Review follows the structured output format", "type": "qualitative"}
+  ]
+}

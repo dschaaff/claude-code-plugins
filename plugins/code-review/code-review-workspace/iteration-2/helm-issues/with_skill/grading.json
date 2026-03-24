@@ -1,0 +1,87 @@
+{
+  "expectations": [
+    {
+      "text": "Review identifies plaintext credentials in values.yaml (DATABASE_URL password, JWT_SECRET, or AWS keys) as Critical",
+      "passed": true,
+      "evidence": "Review has a Critical section titled 'Hardcoded secrets in values.yaml' at values.yaml:13-20 that explicitly names all four: 'a database password (P@ssw0rd123), a JWT signing key, an AWS access key ID, and an AWS secret access key'."
+    },
+    {
+      "text": "Review flags the missing container security context (no runAsNonRoot, no readOnlyRootFilesystem, or no securityContext at all)",
+      "passed": true,
+      "evidence": "Review has an Important section titled 'No security context on the container' at templates/deployment.yaml:19 stating 'The container runs as root by default' and recommends runAsNonRoot, readOnlyRootFilesystem, allowPrivilegeEscalation: false, and dropping ALL capabilities."
+    },
+    {
+      "text": "Review notes that resource limits are empty (resources: {}) which could lead to resource exhaustion",
+      "passed": true,
+      "evidence": "Review has an Important section titled 'No resource requests or limits configured' at values.yaml:27 stating 'resources: {} means no CPU/memory requests or limits' and warns 'a single pod can consume all node resources and starve other workloads'."
+    },
+    {
+      "text": "Review flags the hostPath volume mount as a security concern",
+      "passed": true,
+      "evidence": "Review has a Critical section titled 'hostPath volume is a security and reliability risk' at templates/deployment.yaml:33-34 stating it 'exposes the host filesystem to the container' and 'container can read/write arbitrary host data'."
+    },
+    {
+      "text": "Review identifies image tag 'latest' as problematic for reproducibility or security",
+      "passed": true,
+      "evidence": "Review has an Important section titled 'Image tag latest is unreliable' at values.yaml:4 stating 'deployments are not reproducible. Different deploys can pull different images, and rollbacks become impossible'."
+    },
+    {
+      "text": "Review notes missing health checks (no liveness or readiness probes)",
+      "passed": true,
+      "evidence": "Review has an Important section titled 'No health checks (liveness/readiness probes)' at templates/deployment.yaml:19-26 stating 'Kubernetes cannot detect if the application is healthy or ready to receive traffic'."
+    },
+    {
+      "text": "Review recommends using Kubernetes Secrets or an external secret manager instead of plaintext values",
+      "passed": true,
+      "evidence": "The fix for the hardcoded secrets Critical issue explicitly says 'Use Kubernetes Secrets (referenced via secretKeyRef) or an external secrets manager (e.g., AWS Secrets Manager with External Secrets Operator, or Sealed Secrets)' and provides a code example using secretKeyRef."
+    }
+  ],
+  "summary": {
+    "passed": 7,
+    "failed": 0,
+    "total": 7,
+    "pass_rate": 1.0
+  },
+  "execution_metrics": {
+    "output_chars": 6545,
+    "transcript_chars": 33847
+  },
+  "claims": [
+    {
+      "claim": "Four secrets are committed in plaintext in values.yaml",
+      "type": "factual",
+      "verified": true,
+      "evidence": "The staged diff shows DATABASE_URL with password, JWT_SECRET, AWS_ACCESS_KEY_ID, and AWS_SECRET_ACCESS_KEY all in plaintext in values.yaml lines 13-20."
+    },
+    {
+      "claim": "hostPath volume uses /var/data",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Deployment template lines 33-34 in the diff show 'hostPath: path: /var/data'."
+    },
+    {
+      "claim": "No Service template exists despite service values being defined",
+      "type": "factual",
+      "verified": true,
+      "evidence": "The 'ls templates/' command in the transcript returned only 'deployment.yaml'. values.yaml defines service.type and service.port but no templates/service.yaml exists."
+    },
+    {
+      "claim": "Environment variables are properly quoted with | quote",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Deployment template line 27 in the diff shows 'value: {{ .value | quote }}'."
+    }
+  ],
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "assertion": "Review flags the hostPath volume mount as a security concern",
+        "reason": "The review categorized hostPath as Critical while the expectation only checks that it was 'flagged'. The assertion would pass even if the review buried it as a minor suggestion. Consider checking severity level (Critical or Important) to ensure the review treats it with appropriate urgency."
+      },
+      {
+        "reason": "No assertion checks whether the review caught the missing Service template (values.yaml defines service config but no templates/service.yaml exists). The review found this as an Important issue, which is a meaningful finding about dead configuration that could confuse users."
+      }
+    ],
+    "overall": "Assertions cover the key security and operational issues well. All 7 passed with strong, substantive evidence -- the review genuinely engaged with each problem and provided actionable fixes with code examples. The two suggestions above are minor refinements."
+  }
+}

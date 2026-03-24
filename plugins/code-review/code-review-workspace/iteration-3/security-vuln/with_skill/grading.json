@@ -1,0 +1,85 @@
+{
+  "expectations": [
+    {
+      "text": "Review identifies SQL injection vulnerability as Critical",
+      "passed": true,
+      "evidence": "Three SQL injection issues listed under '## Critical Issues': #2 'SQL Injection in Search Endpoint' (app.py:22-23), #3 'SQL Injection in Get User Endpoint' (app.py:35-37), #4 'SQL Injection in Create User Endpoint' (app.py:55-61). Each includes the vulnerable code and a parameterized query fix."
+    },
+    {
+      "text": "Review flags the hardcoded API_KEY string as a security issue",
+      "passed": true,
+      "evidence": "Critical Issue #1 'Hardcoded API Key' at app.py:8 quotes the exact line: API_KEY = \"sk-proj-a8f3k2m1n4p5q6r7s8t9u0v1w2x3y4z5\" and recommends loading from os.environ."
+    },
+    {
+      "text": "Review notes that password_hash is exposed in the GET response",
+      "passed": true,
+      "evidence": "Critical Issue #5 'Password Hash Exposed in API Response' at app.py:40-46 states 'The get_user endpoint returns password_hash to the client. Password hashes must never leave the server.' Quotes the jsonify call showing password_hash in the response dict."
+    },
+    {
+      "text": "Review flags debug=True or host=0.0.0.0 as a security concern",
+      "passed": true,
+      "evidence": "Important Issue #8 'Debug Mode Enabled on All Interfaces' at app.py:79 states 'Running with debug=True and host=\"0.0.0.0\" exposes the Werkzeug debugger on all network interfaces. The debugger allows arbitrary code execution.' Quotes: app.run(debug=True, host=\"0.0.0.0\")"
+    },
+    {
+      "text": "Review follows structured output format with Critical/Important/Suggestions sections",
+      "passed": true,
+      "evidence": "The review contains all three sections: '## Critical Issues' (6 issues), '## Important Issues' (4 issues), '## Suggestions' (2 items). Also includes '## Strengths' and '## Next Steps' per the skill's output format."
+    },
+    {
+      "text": "Review includes a Strengths section acknowledging at least one positive aspect",
+      "passed": true,
+      "evidence": "The '## Strengths' section lists three positives: 'Clear route structure with RESTful URL patterns', 'Docstring present at the module level', 'Proper use of HTTP status codes (201 for creation, 404 for not found, 401 for unauthorized)'."
+    },
+    {
+      "text": "Review provides specific file:line references for identified issues",
+      "passed": true,
+      "evidence": "Every issue includes a **Location** field with file:line references: app.py:8, app.py:22-23, app.py:35-37, app.py:55-61, app.py:40-46, app.py:55-61, app.py:53-54, app.py:79, app.py:13-14, app.py:69. The two Suggestions also reference app.py."
+    },
+    {
+      "text": "Review quotes the problematic code inline before showing the fix",
+      "passed": true,
+      "evidence": "All 10 Critical and Important issues quote the problematic code in a Python code block under **Problem** before presenting the corrected code under **Fix**. For example, Issue #2 quotes the string-concatenated SQL query, then shows the parameterized version."
+    }
+  ],
+  "summary": {
+    "passed": 8,
+    "failed": 0,
+    "total": 8,
+    "pass_rate": 1.0
+  },
+  "timing": {
+    "total_duration_seconds": 69.3
+  },
+  "claims": [
+    {
+      "claim": "The review identified 12 issues total (6 Critical, 4 Important, 2 Suggestions)",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Counted in review.md: Critical #1-#6, Important #7-#10, Suggestions #11-#12. Totals match."
+    },
+    {
+      "claim": "No test infrastructure or linter configs exist in the repo",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Transcript shows the repo contains only app.py and .git. The bash command checking for CLAUDE.md, pyproject.toml, etc. returned 'No project config files found'."
+    },
+    {
+      "claim": "The f-string SQL in get_user is mitigated by Flask's int route converter",
+      "type": "factual",
+      "verified": true,
+      "evidence": "The route decorator is @app.route('/users/<int:user_id>'), which means Flask validates user_id as int before the handler runs. The review correctly notes this mitigates the risk while still flagging the bad pattern."
+    }
+  ],
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "assertion": "Review flags debug=True or host=0.0.0.0 as a security concern",
+        "reason": "The assertion accepts either debug=True OR host=0.0.0.0 being flagged, but both are present and both are security-relevant. Consider requiring that both are mentioned, since they compound each other (debugger exposed on all interfaces vs. just localhost)."
+      },
+      {
+        "reason": "No assertion checks whether the review identified the plaintext password storage issue (data['password'] stored without hashing). The review caught it as Critical Issue #6, but this would go ungraded if it were missed. Consider adding an assertion for it."
+      }
+    ],
+    "overall": "Assertions cover the major security findings well and verify output format compliance. The two gaps noted above are minor — the existing assertions are discriminating and would fail if the review missed real vulnerabilities."
+  }
+}

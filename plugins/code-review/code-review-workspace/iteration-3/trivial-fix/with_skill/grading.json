@@ -1,0 +1,46 @@
+{
+  "expectations": [
+    {
+      "text": "Review explicitly notes this is a lightweight review or mentions the change is trivial",
+      "passed": true,
+      "evidence": "The review opens with: '**Lightweight review** — single-line comment fix in README.' This explicitly identifies it as a lightweight review and calls out the trivial nature of the change."
+    },
+    {
+      "text": "Review does NOT produce full Critical/Important/Suggestions sections",
+      "passed": true,
+      "evidence": "The review contains no section headers at all — no 'Critical Issues', 'Important Issues', 'Suggestions', 'Strengths', 'Pre-review checks', or 'Next Steps' sections. It is a short paragraph with one supplementary note."
+    },
+    {
+      "text": "Review is noticeably shorter than a full review — concise and proportional",
+      "passed": true,
+      "evidence": "The entire review is 5 lines (approximately 60 words). A full review per the skill template would include multiple headed sections (Strengths, Critical Issues, Important Issues, Suggestions, Next Steps). This output is a single paragraph plus one brief note — clearly concise and proportional to a one-line comment fix."
+    }
+  ],
+  "summary": {
+    "passed": 3,
+    "failed": 0,
+    "total": 3,
+    "pass_rate": 1.0
+  },
+  "timing": {
+    "total_duration_seconds": 31.9
+  },
+  "claims": [
+    {
+      "claim": "The fix accurately reflects that capitalize uppercases only the first letter of the string, not each word",
+      "type": "factual",
+      "verified": true,
+      "evidence": "The diff in the transcript shows the comment was changed from 'Hello World' to 'Hello world', matching the behavior of a capitalize function that only uppercases the first letter."
+    },
+    {
+      "claim": "A README.md.patch file is also staged and probably should not be committed",
+      "type": "quality",
+      "verified": true,
+      "evidence": "The git status output confirms README.md.patch is staged. The patch file contains eval scaffolding ('This file represents the before state'), so flagging it as unintended for commit is a reasonable observation."
+    }
+  ],
+  "eval_feedback": {
+    "suggestions": [],
+    "overall": "No suggestions, evals look solid. The three assertions together form a good discriminating test: they verify the lightweight path was taken (expectation 1), the full framework was skipped (expectation 2), and the output length is proportional (expectation 3). A review that ignored the trivial-change shortcut would fail all three."
+  }
+}

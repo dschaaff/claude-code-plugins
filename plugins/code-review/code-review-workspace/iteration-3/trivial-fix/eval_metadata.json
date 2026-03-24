@@ -1,0 +1,10 @@
+{
+  "eval_id": 3,
+  "eval_name": "trivial-fix",
+  "prompt": "Review the staged changes. It's a one-line fix to a comment in the README.",
+  "assertions": [
+    {"text": "Review explicitly notes this is a lightweight review or mentions the change is trivial", "type": "qualitative"},
+    {"text": "Review does NOT produce full Critical/Important/Suggestions sections", "type": "qualitative"},
+    {"text": "Review is noticeably shorter than a full review — concise and proportional", "type": "qualitative"}
+  ]
+}

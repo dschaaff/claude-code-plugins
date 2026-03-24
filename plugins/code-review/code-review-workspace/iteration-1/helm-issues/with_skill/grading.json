@@ -1,0 +1,102 @@
+{
+  "expectations": [
+    {
+      "text": "Review identifies plaintext credentials in values.yaml (DATABASE_URL password, JWT_SECRET, or AWS keys) as Critical",
+      "passed": true,
+      "evidence": "Critical Issue #1 in review.md: 'Hardcoded Secrets in values.yaml' at values.yaml:13-20 explicitly names DATABASE_URL with password, JWT_SECRET, AWS_ACCESS_KEY_ID, and AWS_SECRET_ACCESS_KEY as plaintext credentials. Categorized under 'Critical Issues (Must Fix)'."
+    },
+    {
+      "text": "Review flags the missing container security context (no runAsNonRoot, no readOnlyRootFilesystem, or no securityContext at all)",
+      "passed": true,
+      "evidence": "Important Issue #7 in review.md: 'No Security Context' states 'No securityContext is set on either the pod or container level. The container will run as root by default.' The fix recommends runAsNonRoot: true, readOnlyRootFilesystem: true, and dropping all capabilities."
+    },
+    {
+      "text": "Review notes that resource limits are empty (resources: {}) which could lead to resource exhaustion",
+      "passed": true,
+      "evidence": "Important Issue #4 in review.md: 'No Resource Requests or Limits' states 'resources: {} means no CPU or memory requests/limits are set' and notes 'a single pod can consume all node resources, causing evictions of other workloads.'"
+    },
+    {
+      "text": "Review flags the hostPath volume mount as a security concern",
+      "passed": true,
+      "evidence": "Critical Issue #2 in review.md: 'hostPath Volume is a Security and Portability Risk' explicitly identifies the hostPath: /var/data mount, calling it a 'security concern because they can expose host filesystem contents to containers.' Categorized as Critical."
+    },
+    {
+      "text": "Review identifies image tag 'latest' as problematic for reproducibility or security",
+      "passed": true,
+      "evidence": "Critical Issue #3 in review.md: 'Using latest as Default Image Tag' states 'the default image tag is latest, which is mutable and non-deterministic' and 'Deployments are not reproducible. Rollbacks become unreliable.' Categorized as Critical."
+    },
+    {
+      "text": "Review notes missing health checks (no liveness or readiness probes)",
+      "passed": true,
+      "evidence": "Important Issue #5 in review.md: 'No Health Checks (Liveness/Readiness Probes)' states 'The container definition has no livenessProbe or readinessProbe' and notes 'Dead pods will continue receiving traffic.'"
+    },
+    {
+      "text": "Review recommends using Kubernetes Secrets or an external secret manager instead of plaintext values",
+      "passed": true,
+      "evidence": "In the fix for Critical Issue #1, review.md states: 'Use Kubernetes Secrets (referenced via secretKeyRef in the deployment) and manage them through a secrets manager (e.g., AWS Secrets Manager, HashiCorp Vault, sealed-secrets, or external-secrets-operator).' A concrete secretKeyRef code example is provided."
+    }
+  ],
+  "summary": {
+    "passed": 7,
+    "failed": 0,
+    "total": 7,
+    "pass_rate": 1.0
+  },
+  "execution_metrics": {
+    "tool_calls": {
+      "ToolSearch": 1,
+      "Read": 1,
+      "Bash": 5,
+      "Glob": 1,
+      "Write": 1
+    },
+    "total_tool_calls": 9,
+    "total_steps": 9,
+    "errors_encountered": 1,
+    "output_chars": 10841,
+    "transcript_chars": 48918
+  },
+  "timing": {
+    "executor_duration_seconds": 82.6,
+    "total_duration_seconds": 82.6
+  },
+  "claims": [
+    {
+      "claim": "Chart.yaml follows the Helm v2 API spec correctly",
+      "type": "factual",
+      "verified": true,
+      "evidence": "The staged diff shows apiVersion: v2 with required fields name, description, type, version, appVersion -- valid Helm v2 Chart.yaml."
+    },
+    {
+      "claim": "The deployment template does not reference .Values.resources at all",
+      "type": "factual",
+      "verified": true,
+      "evidence": "The staged diff for templates/deployment.yaml shows no 'resources' field in the container spec despite values.yaml defining resources: {}."
+    },
+    {
+      "claim": "values.yaml defines service.type and service.port but there is no Service template",
+      "type": "factual",
+      "verified": true,
+      "evidence": "The staged diff shows only templates/deployment.yaml in the templates directory. The ls of templates/ confirms only deployment.yaml exists. values.yaml defines service.type: LoadBalancer and service.port: 80."
+    },
+    {
+      "claim": "3 files changed with 70 lines added",
+      "type": "factual",
+      "verified": true,
+      "evidence": "git diff --cached --stat output: '3 files changed, 70 insertions(+)' matches the review's claim."
+    }
+  ],
+  "user_notes_summary": null,
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "assertion": "Review flags the missing container security context (no runAsNonRoot, no readOnlyRootFilesystem, or no securityContext at all)",
+        "reason": "The assertion accepts any mention of missing security context. A stronger version would require the review to classify it as at least Important severity, since a review that mentions it only in passing as a suggestion would still pass."
+      },
+      {
+        "reason": "No assertion checks whether the review identifies the missing Service template despite service values being defined in values.yaml. The review caught this as Important Issue #6, but it goes ungraded. This is a functional correctness gap -- the chart deploys unreachable pods."
+      }
+    ],
+    "overall": "The assertions cover the major security and operational issues well. All 7 expectations are genuinely discriminating -- each requires the review to identify a specific, non-obvious issue in the Helm chart. The two suggestions above are minor refinements."
+  }
+}

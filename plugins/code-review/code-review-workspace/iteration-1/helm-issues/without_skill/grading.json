@@ -1,0 +1,89 @@
+{
+  "expectations": [
+    {
+      "text": "Review identifies plaintext credentials in values.yaml (DATABASE_URL password, JWT_SECRET, or AWS keys) as Critical",
+      "passed": true,
+      "evidence": "Review section '1. Hardcoded secrets in values.yaml (values.yaml:13-20)' is marked 'Severity: Critical' and explicitly lists DATABASE_URL with password, JWT_SECRET, AWS_ACCESS_KEY_ID, and AWS_SECRET_ACCESS_KEY with their plaintext values."
+    },
+    {
+      "text": "Review flags the missing container security context (no runAsNonRoot, no readOnlyRootFilesystem, or no securityContext at all)",
+      "passed": true,
+      "evidence": "Review section '3. No securityContext defined (templates/deployment.yaml)' states 'The deployment has no pod-level or container-level securityContext. By default, the container may run as root.' Recommendation includes runAsNonRoot: true and readOnlyRootFilesystem: true."
+    },
+    {
+      "text": "Review notes that resource limits are empty (resources: {}) which could lead to resource exhaustion",
+      "passed": true,
+      "evidence": "Review section '4. No resource requests or limits (values.yaml:26)' quotes 'resources: {}' and explains 'Without limits, a single pod can consume all node resources, starving other workloads.'"
+    },
+    {
+      "text": "Review flags the hostPath volume mount as a security concern",
+      "passed": true,
+      "evidence": "Review section '2. hostPath volume usage (templates/deployment.yaml:32-34)' is marked Critical and states 'Grants the container access to the host filesystem, which is a container escape vector.'"
+    },
+    {
+      "text": "Review identifies image tag 'latest' as problematic for reproducibility or security",
+      "passed": true,
+      "evidence": "Review section '5. Image tag latest (values.yaml:4)' states 'Using latest means deployments are not reproducible. Rollbacks become unreliable because you cannot determine which image version is running.'"
+    },
+    {
+      "text": "Review notes missing health checks (no liveness or readiness probes)",
+      "passed": true,
+      "evidence": "Review section '6. No health probes (templates/deployment.yaml)' states 'The container defines no livenessProbe, readinessProbe, or startupProbe' and explains the consequences."
+    },
+    {
+      "text": "Review recommends using Kubernetes Secrets or an external secret manager instead of plaintext values",
+      "passed": true,
+      "evidence": "Review section 1 recommends: 'Use Kubernetes Secrets (referenced via secretKeyRef in the deployment env spec) or an external secrets operator (e.g., External Secrets Operator, Sealed Secrets, or Vault).' Includes a code example using secretKeyRef."
+    }
+  ],
+  "summary": {
+    "passed": 7,
+    "failed": 0,
+    "total": 7,
+    "pass_rate": 1.0
+  },
+  "execution_metrics": {
+    "tool_calls": {
+      "ToolSearch": 1,
+      "Bash": 3,
+      "Write": 1
+    },
+    "total_tool_calls": 5,
+    "total_steps": 5,
+    "errors_encountered": 0,
+    "output_chars": 6862,
+    "transcript_chars": 18926
+  },
+  "claims": [
+    {
+      "claim": "The review identified 13 issues across four severity levels",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Counting numbered sections in the review: 1-2 Critical, 3-6 High, 7-10 Medium, 11-13 Low = 13 total across 4 levels."
+    },
+    {
+      "claim": "values.yaml defines service config but no Service template exists",
+      "type": "factual",
+      "verified": true,
+      "evidence": "The staged diff shows only Chart.yaml, templates/deployment.yaml, and values.yaml. No templates/service.yaml is present, yet values.yaml defines service.type and service.port."
+    },
+    {
+      "claim": "The review provides actionable recommendations with code examples",
+      "type": "quality",
+      "verified": true,
+      "evidence": "Multiple sections include YAML code snippets showing the recommended fix (secretKeyRef, securityContext, resource requests/limits, health probes, standard labels)."
+    }
+  ],
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "reason": "All 7 expectations passed cleanly with strong evidence. The Helm chart was intentionally loaded with issues and the review caught all of them plus several more (dead service config, single replica, service account token, missing helpers). The expectations are well-targeted at distinct, important findings."
+      },
+      {
+        "assertion": "Review identifies plaintext credentials in values.yaml (DATABASE_URL password, JWT_SECRET, or AWS keys) as Critical",
+        "reason": "The 'or' in the expectation means finding any one of these passes. Consider requiring all three categories (database password AND JWT secret AND AWS keys) to ensure thorough credential detection, since a review that only spots one type would still pass."
+      }
+    ],
+    "overall": "Solid eval set. The assertions test distinct Kubernetes security and best-practice concerns and are hard to satisfy without genuinely reviewing the chart. One minor tightening opportunity noted for the credentials assertion."
+  }
+}

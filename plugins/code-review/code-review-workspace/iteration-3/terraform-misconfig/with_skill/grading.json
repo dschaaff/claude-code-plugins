@@ -1,0 +1,98 @@
+{
+  "expectations": [
+    {
+      "text": "Review identifies the IAM policy with Action=* and Resource=* as Critical",
+      "passed": true,
+      "evidence": "Critical Issues section #2 'IAM policy grants full access to all AWS resources' at main.tf:65-73 quotes `Action = \"*\"` and `Resource = \"*\"` and explicitly categorizes it as Critical."
+    },
+    {
+      "text": "Review flags the S3 bucket as publicly accessible",
+      "passed": true,
+      "evidence": "Critical Issues section #3 'Production S3 bucket is publicly readable' identifies both the public access block (all four protections set to false) and the bucket policy granting Principal = \"*\" access to s3:GetObject and s3:ListBucket."
+    },
+    {
+      "text": "Review identifies the hardcoded database password",
+      "passed": true,
+      "evidence": "Critical Issues section #1 'Hardcoded database password in plaintext' at main.tf:84 quotes `password = \"SuperSecret123!\"` and recommends using a sensitive variable or Secrets Manager."
+    },
+    {
+      "text": "Review flags the RDS instance as publicly accessible",
+      "passed": true,
+      "evidence": "Critical Issues section #4 'RDS instance is publicly accessible with an open security group' at main.tf:89 quotes `publicly_accessible = true`."
+    },
+    {
+      "text": "Review notes that storage_encrypted is false on the database",
+      "passed": true,
+      "evidence": "Important Issues section #5 'RDS storage encryption is disabled' at main.tf:88 quotes `storage_encrypted = false` and recommends setting it to true with a KMS key."
+    },
+    {
+      "text": "Review flags the security group allowing 0.0.0.0/0 on port 5432",
+      "passed": true,
+      "evidence": "Critical Issues section #4 quotes the full ingress block showing from_port=5432, to_port=5432, protocol=tcp, cidr_blocks=[\"0.0.0.0/0\"]. Also confirmed by tfsec Result #1 in the transcript."
+    },
+    {
+      "text": "Review notes missing backup configuration or disabled deletion protection",
+      "passed": true,
+      "evidence": "Important Issues section #6 'No backups, no deletion protection, no final snapshot' at main.tf:90-92 quotes all three settings: backup_retention_period=0, deletion_protection=false, skip_final_snapshot=true."
+    },
+    {
+      "text": "Review applies infrastructure-specific security checks",
+      "passed": true,
+      "evidence": "The review ran tfsec (infrastructure security scanner, found 20 issues), checked IAM least-privilege (wildcard policy), network exposure (public RDS, open security group, public S3), secrets management (hardcoded password), and encryption at rest -- all from the skill's Infrastructure IaC checklist."
+    },
+    {
+      "text": "Review quotes the problematic HCL code inline before showing the fix",
+      "passed": true,
+      "evidence": "Every Critical and Important issue follows the pattern: Problem description with inline HCL code block showing the problematic code, then a Fix section with corrected HCL. Examples: Issue #1 quotes `password = \"SuperSecret123!\"` then shows the variable approach; Issue #2 quotes the wildcard policy then shows scoped permissions; Issue #5 quotes `storage_encrypted = false` then shows the fix."
+    }
+  ],
+  "summary": {
+    "passed": 9,
+    "failed": 0,
+    "total": 9,
+    "pass_rate": 1.0
+  },
+  "execution_metrics": {
+    "tool_calls": {
+      "ToolSearch": 1,
+      "Bash": 10,
+      "Read": 2,
+      "Write": 1
+    },
+    "total_tool_calls": 14,
+    "output_chars": 9454,
+    "transcript_chars": 56000
+  },
+  "timing": {
+    "total_duration_seconds": 97.9
+  },
+  "claims": [
+    {
+      "claim": "tfsec found 20 issues: 3 CRITICAL, 6 HIGH, 9 MEDIUM, 2 LOW",
+      "type": "factual",
+      "verified": true,
+      "evidence": "The tfsec output in the transcript shows numbered results up to #20 with the stated severity breakdown visible in the output."
+    },
+    {
+      "claim": "The security group is not attached to the RDS instance",
+      "type": "factual",
+      "verified": true,
+      "evidence": "The Terraform diff shows the aws_db_instance.main resource has no vpc_security_group_ids attribute, while aws_security_group.db is defined separately with no reference from the RDS resource."
+    },
+    {
+      "claim": "Provider version is pinned to ~> 5.0",
+      "type": "factual",
+      "verified": true,
+      "evidence": "The diff shows `version = \"~> 5.0\"` in the required_providers block."
+    }
+  ],
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "assertion": "Review applies infrastructure-specific security checks",
+        "reason": "This assertion is vague enough that a review mentioning any single infrastructure concern would pass. Consider requiring specific evidence like 'review ran tfsec or equivalent scanner' or 'review checks at least 3 of: IAM least-privilege, network exposure, secrets management, encryption at rest'."
+      }
+    ],
+    "overall": "Strong eval set. Eight of nine assertions are specific and discriminating -- they require finding particular misconfigurations with correct severity. The infrastructure-specific checks assertion is the weakest, as it could pass with minimal effort."
+  }
+}

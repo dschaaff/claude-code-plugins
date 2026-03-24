@@ -1,0 +1,54 @@
+{
+  "expectations": [
+    {
+      "text": "Review explicitly notes this is a lightweight review or mentions the change is trivial",
+      "passed": true,
+      "evidence": "The review includes a '## Scope' section stating: 'Trivial -- a documentation-only change correcting a misleading inline comment in a usage example.'"
+    },
+    {
+      "text": "Review does NOT produce full Critical/Important/Suggestions sections with detailed content",
+      "passed": true,
+      "evidence": "The review uses '## Findings' and '## Recommendation' sections instead of Critical/Important/Suggestions categories. It does not follow a formal severity-tiered review structure."
+    },
+    {
+      "text": "Review is noticeably shorter than a full review — the response should be concise and proportional to the change",
+      "passed": false,
+      "evidence": "The review is 39 lines / ~1536 bytes for a one-line comment capitalization fix. It includes two numbered findings with code blocks showing before/after, detailed explanations, and a 3-item recommendation list. While it lacks formal severity tiers, the level of detail (code fences, line references, multiple subsections) is disproportionate to a single-character capitalization change. A concise, proportional review would be a few sentences noting the fix is correct and approving it."
+    }
+  ],
+  "summary": {
+    "passed": 2,
+    "failed": 1,
+    "total": 3,
+    "pass_rate": 0.67
+  },
+  "timing": {
+    "total_duration_seconds": 27.6
+  },
+  "claims": [
+    {
+      "claim": "The staged README.md still contains the incorrect comment",
+      "type": "factual",
+      "verified": true,
+      "evidence": "The git diff in the transcript shows the staged README.md has 'capitalize(\"hello world\"); // \"Hello World\"' — the patch file describes the fix but the README itself was not corrected. The review correctly identified this."
+    },
+    {
+      "claim": "The README.md.patch file should not be committed",
+      "type": "quality",
+      "verified": true,
+      "evidence": "The patch file is indeed change metadata describing before/after state. The recommendation to put this in the commit message is sound."
+    }
+  ],
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "assertion": "Review does NOT produce full Critical/Important/Suggestions sections with detailed content",
+        "reason": "This assertion checks for absence of specific section names, but a review can still be excessively detailed without using those exact headings. The review used '## Findings' with numbered subsections and code blocks — structurally similar verbosity under different names. Consider testing for overall length or detail level rather than specific heading names."
+      },
+      {
+        "reason": "No assertion checks whether the review correctly assessed the actual code change (the capitalization fix). The review made substantive observations about the staged diff that go beyond the stated scope of a trivial fix — it found that the fix was not actually applied. An assertion checking whether the review content is accurate would add value."
+      }
+    ],
+    "overall": "The assertions capture the spirit of 'scale the review to the change' but the second assertion is too easy to satisfy by simply using different section headings. The third assertion does the real discriminating work."
+  }
+}

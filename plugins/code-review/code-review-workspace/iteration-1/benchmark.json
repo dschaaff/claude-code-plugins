@@ -1,0 +1,327 @@
+{
+  "metadata": {
+    "skill_name": "code-review",
+    "skill_path": "/Users/danielschaaff/development/github/claude-code-plugins/plugins/code-review",
+    "executor_model": "claude-opus-4-6",
+    "timestamp": "2026-03-24T19:15:00Z",
+    "evals_run": [1, 2, 3, 4, 5, 6],
+    "runs_per_configuration": 1
+  },
+  "runs": [
+    {
+      "eval_id": 1,
+      "eval_name": "security-vuln-python-flask",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 7,
+        "failed": 0,
+        "total": 7,
+        "time_seconds": 76.4,
+        "tokens": 20739,
+        "tool_calls": 10,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "Review identifies SQL injection vulnerability as Critical", "passed": true, "evidence": "Critical Issue #1 identifies SQL injection in all three endpoints"},
+        {"text": "Review flags hardcoded API_KEY as Critical/Important", "passed": true, "evidence": "Critical Issue #2 identifies hardcoded key at app.py:8"},
+        {"text": "Review notes password_hash exposed in GET response", "passed": true, "evidence": "Critical Issue #4 identifies password_hash in GET /users/<id>"},
+        {"text": "Review flags debug=True/host=0.0.0.0", "passed": true, "evidence": "Critical Issue #5 flags both with RCE explanation"},
+        {"text": "Review follows structured output format", "passed": true, "evidence": "Uses Critical/Important/Suggestions framework"},
+        {"text": "Review includes Strengths section", "passed": true, "evidence": "Strengths section with 3 positive items"},
+        {"text": "Review provides file:line references", "passed": true, "evidence": "Every issue has specific file:line references"}
+      ]
+    },
+    {
+      "eval_id": 1,
+      "eval_name": "security-vuln-python-flask",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.86,
+        "passed": 6,
+        "failed": 1,
+        "total": 7,
+        "time_seconds": 54.0,
+        "tokens": 14402,
+        "tool_calls": 5,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "Review identifies SQL injection vulnerability as Critical", "passed": true, "evidence": "Identified at app.py:23, :36, :56-61"},
+        {"text": "Review flags hardcoded API_KEY as Critical/Important", "passed": true, "evidence": "Flagged as CRITICAL at app.py:8"},
+        {"text": "Review notes password_hash exposed in GET response", "passed": true, "evidence": "Flagged as HIGH at app.py:40-45"},
+        {"text": "Review flags debug=True/host=0.0.0.0", "passed": true, "evidence": "Flagged as MEDIUM at app.py:79"},
+        {"text": "Review follows structured output format", "passed": true, "evidence": "Uses CRITICAL/HIGH/MEDIUM tiers"},
+        {"text": "Review includes Strengths section", "passed": false, "evidence": "No Strengths section — entirely focused on issues"},
+        {"text": "Review provides file:line references", "passed": true, "evidence": "References throughout"}
+      ]
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "performance-node-n-plus-1",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 78.7,
+        "tokens": 21597,
+        "tool_calls": 11,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "Review identifies N+1 query problem", "passed": true, "evidence": "Critical issue with 3N+1 query count analysis"},
+        {"text": "Review flags missing await", "passed": true, "evidence": "Critical — all three async calls flagged"},
+        {"text": "Review identifies XSS in buildTaskReport", "passed": true, "evidence": "Critical — stored XSS via HTML interpolation"},
+        {"text": "Review notes missing transaction in deleteCompletedTasks", "passed": true, "evidence": "Important — data integrity concern"},
+        {"text": "Review provides actionable fix with code examples", "passed": true, "evidence": "Code examples for 6 of 10 issues"},
+        {"text": "Review uses Critical/Important/Suggestions framework", "passed": true, "evidence": "4 Critical, 3 Important, 3 Suggestions"}
+      ]
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "performance-node-n-plus-1",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 73.1,
+        "tokens": 15144,
+        "tool_calls": 6,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "Review identifies N+1 query problem", "passed": true, "evidence": "CRITICAL with 301-query analysis for 100 tasks"},
+        {"text": "Review flags missing await", "passed": true, "evidence": "All three async calls flagged"},
+        {"text": "Review identifies XSS in buildTaskReport", "passed": true, "evidence": "Identified with exploit example"},
+        {"text": "Review notes missing transaction in deleteCompletedTasks", "passed": true, "evidence": "CRITICAL with partial-delete scenario"},
+        {"text": "Review provides actionable fix with code examples", "passed": true, "evidence": "Code examples for 5 issues"},
+        {"text": "Review uses Critical/Important/Suggestions framework", "passed": true, "evidence": "Critical/High/Medium/Low tiers used"}
+      ]
+    },
+    {
+      "eval_id": 3,
+      "eval_name": "trivial-one-line-typo",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.67,
+        "passed": 2,
+        "failed": 1,
+        "total": 3,
+        "time_seconds": 32.3,
+        "tokens": 16302,
+        "tool_calls": 6,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "Review notes this is a lightweight review", "passed": true, "evidence": "First line: 'Lightweight review — 2 new files, 28 lines total'"},
+        {"text": "Review does NOT produce full sections with detailed content", "passed": false, "evidence": "Suggestions section has two fully detailed items using Location/Problem/Impact/Fix template"},
+        {"text": "Review is concise and proportional", "passed": true, "evidence": "61 lines vs full 8-section framework, but still somewhat heavy"}
+      ]
+    },
+    {
+      "eval_id": 3,
+      "eval_name": "trivial-one-line-typo",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.67,
+        "passed": 2,
+        "failed": 1,
+        "total": 3,
+        "time_seconds": 27.6,
+        "tokens": 12333,
+        "tool_calls": 4,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "Review notes this is a lightweight review", "passed": true, "evidence": "Scope section labels change as 'Trivial'"},
+        {"text": "Review does NOT produce full sections with detailed content", "passed": true, "evidence": "Uses Findings/Recommendation instead of formal tiers"},
+        {"text": "Review is concise and proportional", "passed": false, "evidence": "39 lines with code blocks — disproportionate for a one-line fix"}
+      ]
+    },
+    {
+      "eval_id": 4,
+      "eval_name": "clean-go-handler-with-tests",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 74.2,
+        "tokens": 20810,
+        "tool_calls": 9,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "Review acknowledges code quality positively", "passed": true, "evidence": "Strengths section with specific citations"},
+        {"text": "Review notes tests and comments on coverage", "passed": true, "evidence": "Discusses test quality and missing scenarios"},
+        {"text": "Review does NOT flag Critical issues", "passed": true, "evidence": "No Critical issues — only Important and Suggestions"},
+        {"text": "Review mentions good patterns", "passed": true, "evidence": "Error handling, pagination bounds, structured logging cited"},
+        {"text": "Review follows structured output format", "passed": true, "evidence": "Full framework with all sections"}
+      ]
+    },
+    {
+      "eval_id": 4,
+      "eval_name": "clean-go-handler-with-tests",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 59.1,
+        "tokens": 15775,
+        "tool_calls": 5,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "Review acknowledges code quality positively", "passed": true, "evidence": "Architecture section praises clean design"},
+        {"text": "Review notes tests and comments on coverage", "passed": true, "evidence": "Dedicated Test Coverage section with gaps"},
+        {"text": "Review does NOT flag Critical issues", "passed": true, "evidence": "Highest severity is Medium"},
+        {"text": "Review mentions good patterns", "passed": true, "evidence": "Structured logging, pagination, separation of concerns"},
+        {"text": "Review follows structured output format", "passed": true, "evidence": "Clear markdown with titled sections"}
+      ]
+    },
+    {
+      "eval_id": 5,
+      "eval_name": "terraform-misconfig-aws",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 8,
+        "failed": 0,
+        "total": 8,
+        "time_seconds": 82.6,
+        "tokens": 21306,
+        "tool_calls": 9,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "Review identifies IAM wildcard Action=*/Resource=*", "passed": true, "evidence": "Critical Issue #3"},
+        {"text": "Review flags public S3 bucket", "passed": true, "evidence": "Critical Issue #2"},
+        {"text": "Review identifies hardcoded DB password", "passed": true, "evidence": "Critical Issue #1"},
+        {"text": "Review flags publicly accessible RDS", "passed": true, "evidence": "Critical Issue #4"},
+        {"text": "Review notes storage_encrypted=false", "passed": true, "evidence": "Critical Issue #6"},
+        {"text": "Review flags 0.0.0.0/0 SG on port 5432", "passed": true, "evidence": "Critical Issue #5"},
+        {"text": "Review notes missing backups/deletion protection", "passed": true, "evidence": "Important Issues #1 and #2"},
+        {"text": "Review applies infra-specific security checks", "passed": true, "evidence": "Covers least privilege, network exposure, secrets management"}
+      ]
+    },
+    {
+      "eval_id": 5,
+      "eval_name": "terraform-misconfig-aws",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 8,
+        "failed": 0,
+        "total": 8,
+        "time_seconds": 56.8,
+        "tokens": 14792,
+        "tool_calls": 5,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "Review identifies IAM wildcard Action=*/Resource=*", "passed": true, "evidence": "Identified as top finding"},
+        {"text": "Review flags public S3 bucket", "passed": true, "evidence": "Flagged with access block + policy analysis"},
+        {"text": "Review identifies hardcoded DB password", "passed": true, "evidence": "Plaintext SuperSecret123! identified"},
+        {"text": "Review flags publicly accessible RDS", "passed": true, "evidence": "publicly_accessible=true flagged"},
+        {"text": "Review notes storage_encrypted=false", "passed": true, "evidence": "Encryption disabled noted"},
+        {"text": "Review flags 0.0.0.0/0 SG on port 5432", "passed": true, "evidence": "Open SG flagged"},
+        {"text": "Review notes missing backups/deletion protection", "passed": true, "evidence": "backup_retention_period=0, deletion_protection=false"},
+        {"text": "Review applies infra-specific security checks", "passed": true, "evidence": "Covers all three dimensions + unattached SG bonus"}
+      ]
+    },
+    {
+      "eval_id": 6,
+      "eval_name": "helm-chart-security-issues",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 7,
+        "failed": 0,
+        "total": 7,
+        "time_seconds": 82.6,
+        "tokens": 21218,
+        "tool_calls": 10,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "Review identifies plaintext credentials as Critical", "passed": true, "evidence": "Critical — DATABASE_URL, JWT_SECRET, AWS keys flagged"},
+        {"text": "Review flags missing security context", "passed": true, "evidence": "Important — runAsNonRoot, readOnlyRootFilesystem recommended"},
+        {"text": "Review notes empty resource limits", "passed": true, "evidence": "Important — resources: {} and missing template reference"},
+        {"text": "Review flags hostPath volume", "passed": true, "evidence": "Critical — security and portability risk"},
+        {"text": "Review identifies latest tag", "passed": true, "evidence": "Critical — reproducibility concern"},
+        {"text": "Review notes missing health checks", "passed": true, "evidence": "Important — no liveness/readiness probes"},
+        {"text": "Review recommends K8s Secrets or external manager", "passed": true, "evidence": "Recommends Vault, sealed-secrets, external-secrets-operator"}
+      ]
+    },
+    {
+      "eval_id": 6,
+      "eval_name": "helm-chart-security-issues",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 7,
+        "failed": 0,
+        "total": 7,
+        "time_seconds": 61.2,
+        "tokens": 14804,
+        "tool_calls": 5,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "Review identifies plaintext credentials as Critical", "passed": true, "evidence": "Critical — all credentials identified"},
+        {"text": "Review flags missing security context", "passed": true, "evidence": "High — runAsNonRoot recommended"},
+        {"text": "Review notes empty resource limits", "passed": true, "evidence": "High — BestEffort QoS risk"},
+        {"text": "Review flags hostPath volume", "passed": true, "evidence": "Critical — container escape vector"},
+        {"text": "Review identifies latest tag", "passed": true, "evidence": "Non-reproducible deployments"},
+        {"text": "Review notes missing health checks", "passed": true, "evidence": "No probes identified"},
+        {"text": "Review recommends K8s Secrets or external manager", "passed": true, "evidence": "secretKeyRef and external operators recommended"}
+      ]
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {"mean": 0.945, "stddev": 0.133, "min": 0.67, "max": 1.0},
+      "time_seconds": {"mean": 71.1, "stddev": 19.2, "min": 32.3, "max": 82.6},
+      "tokens": {"mean": 20329, "stddev": 1871, "min": 16302, "max": 21597}
+    },
+    "without_skill": {
+      "pass_rate": {"mean": 0.920, "stddev": 0.137, "min": 0.67, "max": 1.0},
+      "time_seconds": {"mean": 55.3, "stddev": 15.7, "min": 27.6, "max": 73.1},
+      "tokens": {"mean": 14542, "stddev": 1134, "min": 12333, "max": 15775}
+    },
+    "delta": {
+      "pass_rate": "+0.025",
+      "time_seconds": "+15.8",
+      "tokens": "+5787"
+    }
+  },
+  "notes": [
+    "With-skill scored 100% on 5/6 evals; baseline scored 100% on 4/6 evals",
+    "The only discriminating assertion was 'Review includes a Strengths section' on eval 1 — baseline failed this, with-skill passed",
+    "Both versions failed the trivial-fix brevity test, but for different reasons: with-skill produced detailed Suggestions, baseline was just too verbose overall",
+    "Detection accuracy is near-identical — Claude catches security/performance issues with or without the skill",
+    "The skill's main value-add is structured output format (Critical/Important/Suggestions), Strengths section, and lightweight review recognition",
+    "With-skill uses ~40% more tokens on average (structured format overhead) and takes ~29% longer",
+    "Terraform and Helm evals showed no differentiation — both versions scored 100% on all infrastructure assertions",
+    "Graders flagged several eval improvement opportunities: add plaintext password assertion, add hardcoded webhook URL assertion, refine trivial-fix assertions to test content accuracy"
+  ]
+}

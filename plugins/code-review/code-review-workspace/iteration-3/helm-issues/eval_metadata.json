@@ -1,0 +1,15 @@
+{
+  "eval_id": 6,
+  "eval_name": "helm-issues",
+  "prompt": "Review the staged changes. This is a Helm chart for deploying an API server to Kubernetes.",
+  "assertions": [
+    {"text": "Review identifies plaintext credentials in values.yaml as Critical", "type": "qualitative"},
+    {"text": "Review flags the missing container security context", "type": "qualitative"},
+    {"text": "Review notes that resource limits are empty", "type": "qualitative"},
+    {"text": "Review flags the hostPath volume mount as a security concern", "type": "qualitative"},
+    {"text": "Review identifies image tag 'latest' as problematic", "type": "qualitative"},
+    {"text": "Review notes missing health checks (no liveness or readiness probes)", "type": "qualitative"},
+    {"text": "Review recommends using Kubernetes Secrets or external secret manager", "type": "qualitative"},
+    {"text": "Review quotes the problematic YAML code inline before showing the fix", "type": "qualitative"}
+  ]
+}

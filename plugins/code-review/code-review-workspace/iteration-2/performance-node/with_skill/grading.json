@@ -1,0 +1,89 @@
+{
+  "expectations": [
+    {
+      "text": "Review identifies the N+1 query problem in getTasksWithAssignees as an Important or Critical performance issue",
+      "passed": true,
+      "evidence": "Review section 'Critical Issues' includes '### N+1 Query Problem in `getTasksWithAssignees`' at location task-service.js:10-22, describing 'For every task, three additional queries run sequentially (assignees, comments, labels). A project with 100 tasks fires 301 queries.'"
+    },
+    {
+      "text": "Review flags missing await on db.query or fetch calls in updateTaskStatus",
+      "passed": true,
+      "evidence": "Review section 'Critical Issues' includes '### Missing `await` on Promises in `updateTaskStatus`' at task-service.js:34-44, stating 'Neither `db.query` call nor the `fetch` call is awaited. The function returns before any of these operations complete. If any fail, the errors are silently swallowed as unhandled promise rejections.'"
+    },
+    {
+      "text": "Review identifies the XSS vulnerability in buildTaskReport where task data is interpolated into HTML without escaping",
+      "passed": true,
+      "evidence": "Review section 'Critical Issues' includes '### XSS Vulnerability in `buildTaskReport`' at task-service.js:60-66, stating 'task.title, task.assignee, and task.status are interpolated directly into HTML with no escaping. If any field contains <script>alert(1)</script>, it executes in the browser.'"
+    },
+    {
+      "text": "Review notes that deleteCompletedTasks lacks a transaction and could leave data in an inconsistent state",
+      "passed": true,
+      "evidence": "Review section 'Important Issues' includes '### No Transaction for Multi-Table Deletion' at task-service.js:49-57, stating 'deleteCompletedTasks deletes from four tables in sequence without a transaction. If the process crashes after deleting comments but before deleting tasks, the data is left in an inconsistent state.'"
+    },
+    {
+      "text": "Review provides actionable fix recommendations with code examples for at least one issue",
+      "passed": true,
+      "evidence": "All four Critical issues and all three Important issues include code examples with concrete fixes. For example, the N+1 fix shows batch queries using Promise.all and WHERE ... ANY($1); the XSS fix provides a complete escapeHtml helper function; the transaction fix shows BEGIN/COMMIT/ROLLBACK wrapping."
+    },
+    {
+      "text": "Review categorizes issues using the Critical/Important/Suggestions framework",
+      "passed": true,
+      "evidence": "Review uses exactly three severity sections: '## Critical Issues' (4 issues: N+1 queries, hardcoded webhook, missing await, XSS), '## Important Issues' (3 issues: no transaction, no input validation, no fetch error handling), and '## Suggestions' (2 items: missing tests, soft deletes)."
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 0,
+    "total": 6,
+    "pass_rate": 1.0
+  },
+  "execution_metrics": {
+    "output_chars": 7765,
+    "transcript_chars": 48927
+  },
+  "timing": {
+    "total_duration_seconds": 67.8
+  },
+  "claims": [
+    {
+      "claim": "A project with 100 tasks fires 301 queries",
+      "type": "factual",
+      "verified": true,
+      "evidence": "1 initial query + 100 tasks * 3 queries each (assignee, comments, labels) = 301. Math checks out."
+    },
+    {
+      "claim": "The history INSERT subquery may read either old or new status due to race condition",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Without await, the UPDATE and INSERT run concurrently. The INSERT's subquery SELECT status FROM tasks WHERE id = $1 could execute before or after the UPDATE completes, producing non-deterministic results."
+    },
+    {
+      "claim": "Queries use parameterized placeholders, avoiding SQL injection",
+      "type": "quality",
+      "verified": true,
+      "evidence": "All db.query calls in the diff use $1/$2 placeholders with parameter arrays, which is the correct parameterized query pattern for PostgreSQL."
+    },
+    {
+      "claim": "No test infrastructure found",
+      "type": "factual",
+      "verified": true,
+      "evidence": "The repo listing shows only .git directory and task-service.js — no package.json, no test files, no config files."
+    }
+  ],
+  "user_notes_summary": null,
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "assertion": "Review provides actionable fix recommendations with code examples for at least one issue",
+        "reason": "This assertion is easy to satisfy — even a single trivial code snippet passes it. Consider requiring code examples for all Critical issues specifically, or verifying that the examples actually address the identified problem (e.g., the N+1 fix uses batch queries, not just a comment saying 'fix this')."
+      },
+      {
+        "reason": "No assertion checks whether the review caught the hardcoded Slack webhook URL as a security issue. The executor flagged it as Critical, which is a legitimate finding. Adding an expectation for hardcoded secrets would strengthen coverage."
+      },
+      {
+        "reason": "No assertion checks whether the review identified the race condition between the UPDATE and history INSERT in updateTaskStatus. The missing-await expectation covers part of it, but the race condition is a distinct correctness bug worth its own assertion."
+      }
+    ],
+    "overall": "The six assertions cover the major expected findings well and all require genuine analysis to satisfy. The main gap is that the 'code examples' assertion has a low bar — it would pass with a single trivial example. The hardcoded secret and race condition are notable findings that no assertion covers."
+  }
+}

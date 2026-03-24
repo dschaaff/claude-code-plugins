@@ -1,0 +1,62 @@
+{
+  "expectations": [
+    {
+      "text": "Review explicitly notes this is a lightweight review or mentions the change is trivial",
+      "passed": true,
+      "evidence": "Line 3 of review.md: '**Lightweight review** -- 2 new files, 28 lines total, documentation only.' The transcript also shows the agent stating: 'This is a trivial, documentation-only change. Per the review instructions, this qualifies for a lightweight review.'"
+    },
+    {
+      "text": "Review does NOT produce full Critical/Important/Suggestions sections with detailed content",
+      "passed": false,
+      "evidence": "Critical and Important sections are empty ('None.'), which is good. However, the Suggestions section contains two fully detailed items using the complete review framework format (Location/Problem/Impact/Fix with code examples), spanning lines 26-42 of review.md. This is the same structured detail level as a full review's issue format, not an abbreviated lightweight output."
+    },
+    {
+      "text": "Review is noticeably shorter than a full review — the response should be concise and proportional to the change",
+      "passed": true,
+      "evidence": "The review is 61 lines and omits the full Architecture, Security Analysis, Testing Quality, Plan Alignment, and detailed Documentation sections that the full template requires. It skips most of the 8-section review framework. However, it still includes Quality Metrics, Review Checklist, and Next Steps sections which add bulk for a one-line typo fix. It is shorter than a full review but could be more proportional to the trivial change."
+    }
+  ],
+  "summary": {
+    "passed": 2,
+    "failed": 1,
+    "total": 3,
+    "pass_rate": 0.67
+  },
+  "timing": {
+    "total_tokens": 16302,
+    "executor_duration_seconds": 32.3,
+    "total_duration_seconds": 32.3
+  },
+  "claims": [
+    {
+      "claim": "The change is 2 new files, 28 lines total",
+      "type": "factual",
+      "verified": true,
+      "evidence": "The git diff in the transcript shows README.md (22 lines) and README.md.patch (6 lines), totaling 28 lines."
+    },
+    {
+      "claim": "capitalize() only capitalizes the first letter, so the comment is inaccurate",
+      "type": "factual",
+      "verified": false,
+      "evidence": "The patch file states this, but there is no actual source code to verify the behavior of capitalize(). The reviewer took the patch file's claim at face value without being able to verify it against implementation code."
+    },
+    {
+      "claim": "README.md.patch is evaluation scaffolding and should not be committed",
+      "type": "quality",
+      "verified": true,
+      "evidence": "The patch file's content ('This file represents the \"before\" state. The change is a one-line typo fix...') is clearly meta-commentary about the change, not project content."
+    }
+  ],
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "assertion": "Review does NOT produce full Critical/Important/Suggestions sections with detailed content",
+        "reason": "This assertion conflates three sections. The agent correctly emptied Critical and Important but still populated Suggestions with full detail. Consider splitting into two assertions: one checking that Critical/Important are empty or absent for trivial changes, and another checking that any findings use abbreviated format rather than the full Location/Problem/Impact/Fix template."
+      },
+      {
+        "reason": "No assertion checks whether the review correctly identified the actual substantive issue (the capitalize comment inaccuracy). A lightweight review that is short but misses the one real finding would pass all three assertions. Consider adding an assertion like 'Review identifies the capitalize comment inaccuracy' to verify the review is both concise AND useful."
+      }
+    ],
+    "overall": "The assertions test the form of the review (lightweight label, brevity, no heavy sections) but not its substance. A review that just says 'Lightweight review: looks fine' would pass all three. Adding a content-accuracy assertion would make the eval more discriminating."
+  }
+}

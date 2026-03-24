@@ -1,0 +1,89 @@
+{
+  "expectations": [
+    {
+      "text": "Review identifies the IAM policy with Action=* and Resource=* as a Critical security issue",
+      "passed": true,
+      "evidence": "Review issue #2 (main.tf:62-72) explicitly quotes Action=\"*\" and Resource=\"*\", labels it Critical, and explains it grants full AWS account access to any EC2 instance assuming the role."
+    },
+    {
+      "text": "Review flags the S3 bucket as publicly accessible (public access block all set to false, Principal=* in policy)",
+      "passed": true,
+      "evidence": "Review issue #1 (main.tf:19-46) identifies both the disabled public access block and the bucket policy granting Principal=\"*\" read access. Labeled Critical."
+    },
+    {
+      "text": "Review identifies the hardcoded database password in the aws_db_instance resource",
+      "passed": true,
+      "evidence": "Review issue #3 (main.tf:82) quotes the exact line `password = \"SuperSecret123!\"` and explains it will be stored in state, VCS history, and plan output. Labeled Critical."
+    },
+    {
+      "text": "Review flags the RDS instance as publicly accessible",
+      "passed": true,
+      "evidence": "Review issue #4 (main.tf:75-92) explicitly calls out `publicly_accessible = true` and recommends setting it to false and placing RDS in private subnets."
+    },
+    {
+      "text": "Review notes that storage_encrypted is false on the database",
+      "passed": true,
+      "evidence": "Review issue #4 states: \"`storage_encrypted = false` means data at rest is unencrypted\" and recommends setting it to true with a KMS key."
+    },
+    {
+      "text": "Review flags the security group allowing ingress from 0.0.0.0/0 on port 5432",
+      "passed": true,
+      "evidence": "Review issue #5 (main.tf:95-110) quotes `cidr_blocks = [\"0.0.0.0/0\"]` and states \"Port 5432 (PostgreSQL) is open to all IP addresses.\" Labeled Critical."
+    },
+    {
+      "text": "Review notes missing backup configuration (backup_retention_period = 0) or disabled deletion protection",
+      "passed": true,
+      "evidence": "Review issues #7 and #8 separately flag `backup_retention_period = 0` (High severity) and `deletion_protection = false` (High severity). Issue #9 also flags `skip_final_snapshot = true`."
+    },
+    {
+      "text": "Review applies infrastructure-specific security checks (least privilege, network exposure, secrets management)",
+      "passed": true,
+      "evidence": "The review covers least privilege (issue #2 recommends scoping IAM actions/resources), network exposure (issues #4, #5, #11 cover public RDS, open security groups, missing VPC), and secrets management (issue #3 recommends Secrets Manager/SSM over hardcoded passwords). Also covers encryption at rest for both S3 (#14) and RDS (#4)."
+    }
+  ],
+  "summary": {
+    "passed": 8,
+    "failed": 0,
+    "total": 8,
+    "pass_rate": 1.0
+  },
+  "execution_metrics": {
+    "output_chars": 6722,
+    "transcript_chars": 27835
+  },
+  "timing": {
+    "total_duration_seconds": 56.8
+  },
+  "claims": [
+    {
+      "claim": "The configuration contains 15 distinct issues",
+      "type": "factual",
+      "verified": true,
+      "evidence": "The review lists 15 numbered issues. Each maps to a real concern in the Terraform code visible in the staged diff."
+    },
+    {
+      "claim": "The security group is not attached to the RDS instance",
+      "type": "factual",
+      "verified": true,
+      "evidence": "The staged diff shows aws_db_instance.main has no vpc_security_group_ids argument, so aws_security_group.db is indeed orphaned. Good catch that goes beyond the eval expectations."
+    },
+    {
+      "claim": "Line references are accurate (e.g., main.tf:82 for password, main.tf:62-72 for IAM policy)",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Cross-referencing the staged diff: password is at line 82 of the new file, IAM policy statement spans lines 62-72. Line numbers are accurate."
+    }
+  ],
+  "user_notes_summary": null,
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "reason": "No assertion checks whether the review includes file:line references or actionable fix recommendations. A review that merely lists issue names without locating them in code or suggesting fixes would pass all current assertions. Consider adding an assertion like 'Review provides specific line references for each issue' or 'Review includes remediation guidance.'"
+      },
+      {
+        "reason": "The review caught that the security group is defined but never attached to the RDS instance (no vpc_security_group_ids) -- a subtle structural bug. No assertion tests for this. Consider adding one, as it tests deeper Terraform comprehension."
+      }
+    ],
+    "overall": "Assertions cover the major security issues well. The main gap is that they test issue detection but not review quality (line references, fix suggestions, severity classification)."
+  }
+}

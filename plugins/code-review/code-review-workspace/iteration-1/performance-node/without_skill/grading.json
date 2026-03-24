@@ -1,0 +1,84 @@
+{
+  "expectations": [
+    {
+      "text": "Review identifies the N+1 query problem in getTasksWithAssignees as an Important or Critical performance issue",
+      "passed": true,
+      "evidence": "Review section 'N+1 Query Problem in getTasksWithAssignees (lines 10-22) -- CRITICAL' explicitly identifies this: 'The function fetches all tasks, then issues three separate queries per task (assignee, comments, labels) inside a loop. For a project with 100 tasks, this executes 301 queries instead of 4.'"
+    },
+    {
+      "text": "Review flags missing await on db.query or fetch calls in updateTaskStatus",
+      "passed": true,
+      "evidence": "Review section 'Race Condition and Missing Transaction in updateTaskStatus (lines 33-46) -- CRITICAL' states: 'No await on any of the three async calls (lines 34, 36, 41). The db.query and fetch calls return promises that are silently discarded.' Also reiterated under 'Fire-and-Forget fetch Call (line 36-39) -- HIGH'."
+    },
+    {
+      "text": "Review identifies the XSS vulnerability in buildTaskReport where task data is interpolated into HTML without escaping",
+      "passed": true,
+      "evidence": "Review section 'XSS Vulnerability in buildTaskReport (lines 61-67) -- HIGH' states: 'Task titles and assignee names are interpolated directly into HTML with no escaping' and provides a concrete exploit example with a script tag."
+    },
+    {
+      "text": "Review notes that deleteCompletedTasks lacks a transaction and could leave data in an inconsistent state",
+      "passed": true,
+      "evidence": "Review section 'Missing Transaction in deleteCompletedTasks (lines 49-58) -- CRITICAL' states: 'Deleting across four tables (comments, task_labels, task_history, tasks) without a transaction means a failure mid-way leaves the database in an inconsistent state. If the delete on task_history fails, comments and labels are already gone but the task still exists.'"
+    },
+    {
+      "text": "Review provides actionable fix recommendations with code examples for at least one issue",
+      "passed": true,
+      "evidence": "The review provides code examples for multiple issues: JOIN/batch query fix for N+1 (lines 17-32 of review), transaction wrapper for deleteCompletedTasks (lines 40-52), escapeHtml function for XSS (lines 83-89), status validation allowlist (lines 105-109), and batch delete queries (lines 126-131)."
+    },
+    {
+      "text": "Review categorizes issues using the Critical/Important/Suggestions framework",
+      "passed": true,
+      "evidence": "The review uses a severity-based categorization with Critical/High/Medium/Low levels, presented in a summary table: 'Critical (3): N+1 queries, missing transactions (x2), missing awaits; High (3): XSS vulnerability, hardcoded secret, no error handling; Medium (3): No input validation, no authorization, sequential batch deletes; Low (2): SELECT *, no JSDoc'. While the exact labels differ from 'Critical/Important/Suggestions', the framework serves the same purpose with a clear severity hierarchy."
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 0,
+    "total": 6,
+    "pass_rate": 1.0
+  },
+  "execution_metrics": {
+    "total_tokens": 15144,
+    "output_chars": 7575,
+    "transcript_chars": 24847
+  },
+  "timing": {
+    "total_duration_seconds": 73.1
+  },
+  "claims": [
+    {
+      "claim": "getTasksWithAssignees executes 301 queries for 100 tasks",
+      "type": "factual",
+      "verified": true,
+      "evidence": "1 initial query + 3 queries per task (assignee, comments, labels) * 100 tasks = 301 queries. Math checks out."
+    },
+    {
+      "claim": "The history INSERT references $1 for both task_id and the subquery WHERE id, which is correct by coincidence",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Source code shows: INSERT INTO task_history (task_id, old_status, new_status) VALUES ($1, (SELECT status FROM tasks WHERE id = $1), $2) with params [taskId, newStatus]. Both $1 references resolve to taskId, which is indeed correct."
+    },
+    {
+      "claim": "ESM import syntax without package.json type:module will fail at runtime",
+      "type": "factual",
+      "verified": true,
+      "evidence": "The file uses 'import { db } from \"./database.js\"' and the repo listing shows no package.json. Node.js requires either .mjs extension or type:module in package.json for ESM."
+    },
+    {
+      "claim": "Unhandled promise rejections may crash the process depending on Node version",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Since Node 15, unhandled promise rejections throw by default (--unhandled-rejections=throw). This is accurate."
+    }
+  ],
+  "user_notes_summary": null,
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "assertion": "Review categorizes issues using the Critical/Important/Suggestions framework",
+        "reason": "The assertion specifies 'Critical/Important/Suggestions' but the review used 'Critical/High/Medium/Low'. This passed because the intent is the same, but the assertion could be more flexible (e.g., 'uses a severity-based categorization') or more precise (specify the exact labels expected). As written, a strict reading could go either way."
+      }
+    ],
+    "overall": "The expectations cover the key bugs well. One minor ambiguity in the severity framework assertion name. The set of expectations is well-chosen -- each targets a distinct, real defect in the code that requires genuine analysis to identify."
+  }
+}
