@@ -39,7 +39,7 @@ test_accepts_valid_skills() {
 test_rejects_non_spec_frontmatter() {
   current_test="exits nonzero and names the skill with a non-spec frontmatter field"
   local dir out status
-  dir="$(new_skills_dir invalid alpha 'beta:disable-model-invocation: true')"
+  dir="$(new_skills_dir invalid alpha 'beta:vendor-only-field: true')"
   out="$("$VALIDATOR" "$dir" 2>&1)"
   status=$?
 
@@ -50,10 +50,40 @@ test_rejects_non_spec_frontmatter() {
   esac
 }
 
+test_accepts_an_allowlisted_field() {
+  current_test="exits 0 for a skill whose only non-spec field is allowlisted"
+  local dir out status
+  dir="$(new_skills_dir allowlisted alpha 'beta:disable-model-invocation: true')"
+  out="$("$VALIDATOR" "$dir" 2>&1)"
+  status=$?
+  [ "$status" -eq 0 ] || fail "expected exit 0, got $status. output: $out"
+}
+
+test_allowlisted_field_does_not_excuse_other_errors() {
+  current_test="still validates the rest of a skill that carries an allowlisted field"
+  local dir out status
+  dir="$(new_skills_dir alongside alpha \
+    "$(printf 'beta:disable-model-invocation: true\nvendor-only-field: true')")"
+  out="$("$VALIDATOR" "$dir" 2>&1)"
+  status=$?
+
+  [ "$status" -ne 0 ] || fail "expected nonzero exit, got 0. output: $out"
+  case "$out" in
+  *vendor-only-field*) ;;
+  *) fail "expected the unexempted field in the output. output: $out" ;;
+  esac
+  # The sanitized copy lives in a temp dir; reporting that path would send the reader
+  # somewhere that no longer exists.
+  case "$out" in
+  *"$dir/beta"*) ;;
+  *) fail "expected the real skill path, not the copy. output: $out" ;;
+  esac
+}
+
 test_reports_every_failure_not_just_the_first() {
   current_test="reports all invalid skills rather than stopping at the first"
   local dir out
-  dir="$(new_skills_dir multi 'alpha:disable-model-invocation: true' \
+  dir="$(new_skills_dir multi 'alpha:vendor-only-field: true' \
     'beta:triggerAutomatically: false')"
   out="$("$VALIDATOR" "$dir" 2>&1)"
 
@@ -88,6 +118,8 @@ test_this_repos_skills_are_valid() {
 
 test_accepts_valid_skills
 test_rejects_non_spec_frontmatter
+test_accepts_an_allowlisted_field
+test_allowlisted_field_does_not_excuse_other_errors
 test_reports_every_failure_not_just_the_first
 test_ignores_hidden_directories
 test_this_repos_skills_are_valid
