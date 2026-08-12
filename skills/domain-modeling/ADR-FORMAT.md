@@ -1,6 +1,9 @@
 # ADR Format
 
-ADRs live in `docs/adr/` and use sequential numbering: `0001-slug.md`, `0002-slug.md`, etc.
+ADRs live in `docs/adr/` at the repo root and use sequential numbering: `0001-slug.md`,
+`0002-slug.md`, etc. One directory per repo, even when the repo has multiple contexts — a
+per-context `docs/adr/` restarts numbering in each one, so `ADR-0007` stops identifying a
+single decision. Name the context in the title instead: `0007-ordering-partial-cancellation.md`.
 
 Create the `docs/adr/` directory lazily — only when the first ADR is needed.
 
@@ -24,7 +27,7 @@ Only include these when they add genuine value. Most ADRs won't need them.
 
 ## Numbering
 
-Scan `docs/adr/` for the highest existing number and increment by one.
+Scan the root `docs/adr/` for the highest existing number and increment by one.
 
 ## When to offer an ADR
 
