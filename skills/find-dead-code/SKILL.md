@@ -6,24 +6,31 @@ disable-model-invocation: true
 
 # Find Dead Code
 
-Audit this repository for dead code that is a candidate for removal. The deliverable is a
-high-confidence, evidence-backed report.
+Audit this repository for dead code. The deliverable is a high-confidence, evidence-backed
+report.
 
 <HARD-GATE>
-Do not modify, move, or delete any file. This skill produces a report and nothing else,
-even when a candidate looks obviously dead and even when the user sounds impatient. Removal
-is a separate task the user starts deliberately.
+Do not modify, move, or delete any file in the repository, even when a candidate looks
+obviously dead and even when the user sounds impatient. Removal is a separate task they
+start deliberately against the report. The one file you write is the report, and it lands
+outside the repo.
 </HARD-GATE>
-
-Where you are uncertain, say so rather than guessing. An unranked pile of maybes is worth
-less than a short list the user can act on without re-checking your work.
 
 ## Process
 
-### 1. Map the real entry points
+### 1. Scope the audit — YAGNI
 
-Reachability is measured from roots you have confirmed, not from assumptions. Find them
-first:
+Reachability analysis across a whole monorepo is unbounded work, and most of it answers a
+question nobody asked.
+
+- If the user named a direction — a package, a subsystem, a suspicion — take it.
+- Otherwise start where rot collects: long-lived areas that have stopped changing, and
+  anything the commit history shows was migrated away from but never cleaned up.
+
+### 2. Map the real entry points
+
+Reachability is measured from roots you have confirmed, not from assumptions. Within your
+scope, find them first:
 
 - `main()`, binaries, and other program entry points
 - CLI command registrations
@@ -33,9 +40,7 @@ first:
 - test entry points
 - anything named by build, CI, container, or deploy config
 
-Nothing downstream is trustworthy until this map exists.
-
-### 2. Gather candidates in these categories
+### 3. Gather candidates in these categories
 
 Keep the categories separate — they carry different risk and different cleanup work.
 
@@ -51,51 +56,75 @@ Keep the categories separate — they carry different risk and different cleanup
    read, or whose gated code is now permanently on or off.
 6. **Commented-out code and abandoned scaffolding** — commented blocks, and TODO-marked
    structure that was never finished or wired up.
+7. **Test-only code** — reachable only from tests. Not dead, but worth surfacing: the user
+   decides whether the code goes or the test does.
 
-### 3. Prove each candidate
+Spawn a sub-agent per category (or per package, on a monorepo), hand it the scope and the
+entry-point map, and have it return findings in the Output shape below. Running all seven
+searches inline buries the report under the transcript.
 
-**A claim of "unused" with no accompanying search is invalid.** For every candidate, record
-the search you ran and what it returned — e.g. the ripgrep query, and that it produced zero
-hits outside the definition itself. Prefer structure-aware search (`ast-grep`, an LSP, the
-compiler) over text patterns for call sites and imports; text search misses call shapes and
-over-matches on comments.
+### 4. Prove each candidate
 
-Use language-native tooling where it exists and name what you used: `go vet` and
-`deadcode`, `knip` or `ts-prune`, `vulture`, `cargo +nightly udeps`, compiler `-Wunused`,
-coverage reports. Treat every tool result as a **lead**, then confirm it by hand. These
-tools do not understand the traps below.
+**A claim of "unused" with no accompanying search is invalid.** Record the query you ran and
+what it returned — e.g. the ripgrep pattern, and that it produced zero hits outside the
+definition itself. Prefer structure-aware search (`ast-grep`, an LSP, the compiler) over text
+patterns; text search misses call shapes and over-matches on comments.
 
-### 4. Rule out the traps
+Use language-native tooling where it exists and name what you used: `go vet` and `deadcode`,
+`knip`, `vulture`, `cargo machete` or `cargo +nightly udeps`, compiler `-Wunused`, coverage
+reports. Treat every result as a **lead** and confirm it by hand — these tools do not
+understand the traps below.
 
-Check each of these before flagging anything. Most false positives come from this list:
+History moves the confidence rating more than another grep does:
+
+- `git log -S '<symbol>' --oneline` — whether the symbol was ever referenced, and when its
+  last call site disappeared. Callers that vanished in a migration are a different finding
+  from callers that never existed.
+- `git log -1 --format=%ad -- <file>` — long-untouched and unreachable is strong evidence;
+  added last week and unreachable is usually unfinished work, not rot.
+
+### 5. Rule out the traps
+
+Most false positives come from this list:
 
 - **Dynamic or indirect references** — reflection, string-based dispatch, dependency
   injection, decorators and annotations, `getattr`/`eval`, registries, plugin loaders,
   template and HTML references, serialization by field or type name.
 - **Public API surface** — an exported symbol in a library can have external consumers with
-  zero in-repo callers. Flag these LOW confidence and say why explicitly.
-- **Test-only usage** — code used only by tests is not dead. Give it its own category and
-  let the user decide whether the code or the test goes.
+  zero in-repo callers. Rate these `EXTERNAL`, not `LOW`.
 - **Framework magic** — convention-based loading: routes, migrations, fixtures, ORM hooks,
   build-time codegen.
 - **Non-code references** — config files, IaC, SQL, shell scripts, Dockerfiles, CI
   workflows, generated code.
-- **Monorepo cross-package usage** — search the whole workspace, never a single package.
+- **Monorepo cross-package usage** — search the whole workspace, even when the audit is
+  scoped to a single package.
+- **Dependencies used without an import** — where category 4 goes wrong. Linters, formatters,
+  build plugins, and codegen run from CI or scripts and are never imported; type stubs are
+  compile-time only; peer, optional, and transitive dependencies are declared for resolution
+  rather than use. Check scripts, CI workflows, and tool config before calling one unused.
 
 ## Output
 
-A Markdown report grouped by the categories in step 2, ranked by confidence with the
-highest first. Each candidate carries:
+Write the report to `<tmpdir>/dead-code-report-<timestamp>.md`, resolving the temp dir from
+`$TMPDIR` and falling back to `/tmp`, so nothing lands in the repo. Give the user the
+absolute path and the per-category counts rather than replaying the report in chat.
+
+Group it by the categories in step 3, highest confidence first. Each candidate carries:
 
 - **Location** — file path and line range
 - **What it is** and why it appears dead
-- **Evidence** — the exact search performed and its result, plus any tool output
-- **Confidence** — `HIGH` (safe to remove), `MEDIUM` (verify with the owner), `LOW` (likely
-  a false positive, listed for completeness)
+- **Evidence** — the searches, tool output, and history behind the claim
+- **Confidence** — one of:
+  - `HIGH` — reachability is settled and no trap applies. Safe to remove.
+  - `MEDIUM` — likely dead, with one assumption left for the owner to confirm. Name it.
+  - `EXTERNAL` — undecidable from inside the repo, typically an exported symbol with no
+    in-repo callers. A real finding, not noise; say what would settle it.
+  - `LOW` — a search flagged it, but a trap probably explains it. Listed so the user sees it
+    was considered, not silently dropped.
 - **Downstream cleanup** removal would enable — now-unused imports, dependencies, tests
 - **Verification step** before deletion — e.g. "remove, run the full test suite and build;
   grep external consumers"
 
-State the entry points you measured reachability from, and name anything you could not
-reach a conclusion on. A category with no findings gets one line saying so — silence reads
-as "not checked."
+State the scope you audited, the entry points you measured reachability from, and anything
+you could not reach a conclusion on. A category with no findings gets one line saying so —
+silence reads as "not checked."
