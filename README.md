@@ -43,6 +43,7 @@ npx skills add dschaaff/agent-skills
 | `codebase-design` | Shared vocabulary for designing deep modules |
 | `domain-modeling` | Build the project's glossary and record decisions as ADRs |
 | `improve-codebase-architecture` | Scan for deepening opportunities, report them, grill one |
+| `find-dead-code` | Audit for removal candidates with evidence and confidence ratings |
 | `playwright-cli` | Drive a browser for testing and extraction |
 
 ## Development
