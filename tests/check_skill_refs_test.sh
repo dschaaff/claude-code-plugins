@@ -70,6 +70,25 @@ test_ignores_unbackticked_prose() {
   [ "$status" -eq 0 ] || fail "expected exit 0, got $status. output: $out"
 }
 
+test_rejects_a_missing_reference_in_a_supporting_file() {
+  current_test="exits nonzero when a supporting markdown file references a missing skill"
+  local dir out status
+  dir="$(new_skills_dir supporting \
+    'alpha:See REFERENCE.md.' \
+    'beta:Does the work.')"
+  # Backticks here are literal test data, not command substitution.
+  # shellcheck disable=SC2016
+  printf 'Now invoke the `ghost` skill to continue.\n' >"$dir/alpha/REFERENCE.md"
+  out="$("$CHECKER" "$dir" 2>&1)"
+  status=$?
+
+  [ "$status" -ne 0 ] || fail "expected nonzero exit, got 0. output: $out"
+  case "$out" in
+  *alpha/REFERENCE.md*) ;;
+  *) fail "expected the supporting file in the message. output: $out" ;;
+  esac
+}
+
 test_this_repos_skills_resolve() {
   current_test="every cross-reference in this repo's skills resolves"
   local out status
@@ -81,6 +100,7 @@ test_this_repos_skills_resolve() {
 test_accepts_a_reference_to_an_existing_sibling
 test_rejects_a_reference_to_a_missing_skill
 test_ignores_unbackticked_prose
+test_rejects_a_missing_reference_in_a_supporting_file
 test_this_repos_skills_resolve
 
 finish

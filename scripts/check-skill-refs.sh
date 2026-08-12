@@ -5,6 +5,9 @@
 # followed by the word "skill". Renaming or deleting a skill without updating its callers
 # otherwise breaks silently: the agent simply never finds it.
 #
+# Every markdown file inside a skill is scanned, not just SKILL.md — supporting files carry
+# cross-references too, and they rot the same way.
+#
 # Usage: check-skill-refs.sh [skills-dir]
 
 # Backticks throughout this file are literal markdown syntax being matched, not command
@@ -37,7 +40,7 @@ while IFS= read -r file; do
     esac
   done < <(grep -oE '`[a-z0-9][a-z0-9-]*` skill' "$file" |
     sed -E 's/^`([^`]*)`.*/\1/' | sort -u)
-done < <(find "$SKILLS_DIR" -mindepth 2 -maxdepth 2 -name SKILL.md)
+done < <(find "$SKILLS_DIR" -mindepth 2 -type f -name '*.md')
 
 [ "$status" -eq 0 ] && printf 'all skill cross-references resolve\n'
 exit "$status"
