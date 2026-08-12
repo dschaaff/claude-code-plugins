@@ -22,6 +22,12 @@ Before asking anything, look at the project: files, docs, recent commits, existi
 conventions. If a **fact** can be found in the environment, look it up — never ask the user
 for it. The **decisions** are theirs: put each one to them and wait for the answer.
 
+Read `CONTEXT.md` (or the contexts listed in `CONTEXT-MAP.md`) if the repo has one, and use
+its terms for the rest of the interview — don't invent a second name for a concept the
+glossary already names. When the user's wording conflicts with a defined term, or the idea
+needs a term the glossary lacks, make that a question rather than a silent choice. Writing
+the term down belongs to the `domain-modeling` skill, after the gate below lifts.
+
 ### 2. Check scope early
 
 If the request spans multiple independent subsystems, say so immediately and help decompose

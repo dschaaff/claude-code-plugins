@@ -16,6 +16,12 @@ Before writing, look at what exists: project structure, prior specs in `docs/spe
 conventions and where tests live, relevant standards docs. The spec's Testing and Design
 decisions sections must fit the actual repo, not a hypothetical one.
 
+Read `CONTEXT.md` (or the contexts in `CONTEXT-MAP.md`) if the repo has one, and name things
+the way it does. Where the conversation settled a term the glossary doesn't carry yet, or
+sharpened one it defines loosely, invoke the `domain-modeling` skill to update `CONTEXT.md`
+before writing the spec — the spec then uses the term the glossary now defines. ADRs in
+`docs/adr/` record decisions this spec should not re-litigate.
+
 ## Write the spec
 
 Path: `docs/specs/YYYY-MM-DD-<topic>.md`. If a spec for this topic already exists in
