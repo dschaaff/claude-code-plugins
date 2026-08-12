@@ -1,0 +1,51 @@
+# Run with: prek run --all-files
+# CI runs the same hooks, so local and CI cannot drift.
+repos:
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.11.0.1
+    hooks:
+      - id: shellcheck
+        args: [-x]
+
+  - repo: https://github.com/scop/pre-commit-shfmt
+    rev: v3.13.1-1
+    hooks:
+      - id: shfmt
+        args: [-i, "2", -d]
+
+  - repo: local
+    hooks:
+      - id: validate-skills
+        name: validate skills against the Agent Skills spec
+        entry: scripts/validate-skills.sh
+        language: script
+        files: ^skills/
+        pass_filenames: false
+
+      - id: check-skill-refs
+        name: check every inter-skill reference resolves
+        entry: scripts/check-skill-refs.sh
+        language: script
+        files: ^skills/
+        pass_filenames: false
+
+      - id: install-tests
+        name: install.sh tests
+        entry: tests/install_test.sh
+        language: script
+        files: ^(install\.sh|tests/)
+        pass_filenames: false
+
+      - id: check-skill-refs-tests
+        name: check-skill-refs.sh tests
+        entry: tests/check_skill_refs_test.sh
+        language: script
+        files: ^(scripts/check-skill-refs\.sh|tests/)
+        pass_filenames: false
+
+      - id: validate-skills-tests
+        name: validate-skills.sh tests
+        entry: tests/validate_skills_test.sh
+        language: script
+        files: ^(scripts/validate-skills\.sh|tests/)
+        pass_filenames: false
