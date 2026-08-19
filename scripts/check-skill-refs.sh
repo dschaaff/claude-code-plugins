@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # Fails when one skill points at another skill that does not exist.
 #
-# The convention these skills follow is "invoke the `name` skill" — a backticked skill name
-# followed by the word "skill". Renaming or deleting a skill without updating its callers
-# otherwise breaks silently: the agent simply never finds it.
+# Two forms are recognised: `call the Skill tool with "name"` for an invocation, and a
+# quoted or backticked skill name followed by the word "skill" for a plain mention.
+# Renaming or deleting a skill without updating its callers otherwise breaks silently: the
+# agent simply never finds it.
 #
 # Every markdown file inside a skill is scanned, not just SKILL.md — supporting files carry
 # cross-references too, and they rot the same way.
@@ -33,13 +34,13 @@ while IFS= read -r file; do
     case "$known" in
     *" $name "*) ;;
     *)
-      printf '%s: references the `%s` skill, which does not exist in %s\n' \
+      printf '%s: references the "%s" skill, which does not exist in %s\n' \
         "$file" "$name" "$SKILLS_DIR" >&2
       status=1
       ;;
     esac
-  done < <(grep -oE '`[a-z0-9][a-z0-9-]*` skill' "$file" |
-    sed -E 's/^`([^`]*)`.*/\1/' | sort -u)
+  done < <(grep -oE 'Skill tool with "[a-z0-9][a-z0-9-]*"|[`"][a-z0-9][a-z0-9-]*[`"] skill' \
+    "$file" | sed -E 's/^Skill tool with //; s/ skill$//; s/^[`"]//; s/[`"]$//' | sort -u)
 done < <(find "$SKILLS_DIR" -mindepth 2 -type f -name '*.md')
 
 [ "$status" -eq 0 ] && printf 'all skill cross-references resolve\n'

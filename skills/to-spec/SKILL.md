@@ -1,14 +1,14 @@
 ---
 name: to-spec
-description: Invoke whenever the user wants the current discussion captured as a spec - "write this up as a spec", "turn this into a spec", "create the spec", "spec it out", or a design conversation has just wrapped up and the next step is a written spec. Do not write a spec file by hand from memory of the template; this skill defines the format. Synthesizes the conversation into docs/specs with vertical slices - no interview, just synthesis.
+description: Capture the current discussion as a spec - invoke on any request to write up, create, or spec out the design just discussed, and when a design conversation wraps up. This skill defines the spec format; the shape comes from here rather than from memory. Synthesis only, no interview - writes docs/specs with vertical slices.
 ---
 
 # To Spec
 
-Convert the current conversation into a spec file. No interview — the thinking already
-happened (in a brainstorm or an ad-hoc discussion); this skill synthesizes it. If the
-conversation leaves a real gap — a decision never made, a requirement never pinned down —
-ask the user explicitly before writing. Never invent requirements to fill silence.
+Convert the current conversation into a spec file. o NOT interview the user —
+just synthesize what you already know. Every requirement traces to something
+the conversation settled. Where it leaves a real gap — a decision never made, a
+requirement never pinned down — ask the user explicitly before writing.
 
 ## Ground the spec in the repo
 
@@ -18,44 +18,51 @@ decisions sections must fit the actual repo, not a hypothetical one.
 
 Read `CONTEXT.md` (or the contexts in `CONTEXT-MAP.md`) if the repo has one, and name things
 the way it does. Where the conversation settled a term the glossary doesn't carry yet, or
-sharpened one it defines loosely, invoke the `domain-modeling` skill to update `CONTEXT.md`
-before writing the spec — the spec then uses the term the glossary now defines. ADRs in
-`docs/adr/` record decisions this spec should not re-litigate.
+sharpened one it defines loosely, call the Skill tool with "domain-modeling" to update
+`CONTEXT.md` before writing the spec — the spec then uses the term the glossary now
+defines. ADRs in `docs/adr/` record decisions this spec should not re-litigate.
 
 ## Write the spec
 
-Path: `docs/specs/YYYY-MM-DD-<topic>.md`. If a spec for this topic already exists in
-`docs/specs/`, update it in place instead of creating a new file — the spec is a living
-document. Sections, in order:
+Path: `docs/specs/YYYY-MM-DD-<topic>.md`. A spec for this topic already in `docs/specs/`
+gets updated in place — the spec is a living document. Sections, in order:
 
 ```markdown
 # <topic>
 
 ## Problem
+
 What's broken or missing, from the user's perspective.
 
 ## Solution
+
 The intended end state, from the user's perspective.
 
 ## Design decisions
+
 Architecture, interfaces, schemas, the chosen approach and why — the decisions made in
 conversation, including rejected alternatives when the "why not" matters. Code snippets
 only when a prototype (schema, type shape, state machine) captures a decision better than
 prose. Avoid file paths that go stale.
 
 ## Testing
+
 The seams: where tests live, what behavior they verify, prior art in the repo. Behavior
 through public boundaries — the fewer seams the better.
 
 ## Slices
+
 Numbered vertical slices, completable independently in order. Each slice:
+
 ### Slice N: <name>
+
 **Goal:** one sentence.
 Requirements: exact values and behaviors — numbers, names, formats, verbatim where it
 matters.
 Done when: an observable check.
 
 ## Out of scope
+
 What this spec deliberately excludes.
 ```
 
@@ -66,7 +73,8 @@ by appending `— DONE` to slice headings, so keep headings stable.
 
 ## Self-review
 
-Reread the draft with fresh eyes and fix inline — no re-review loop:
+Reread the draft with fresh eyes and fix inline — no re-review loop. Every item below
+answered for every section:
 
 1. **Placeholders** — any TBD, TODO, or vague requirement? Pin it down.
 2. **Contradictions** — do sections disagree with each other?
@@ -78,4 +86,4 @@ Reread the draft with fresh eyes and fix inline — no re-review loop:
 Commit the spec. Then ask the user to review the file before anything gets built:
 
 > Spec written and committed to `<path>`. Review it and tell me what to change — when it's
-> approved, invoke the `implement-spec` skill to execute it.
+> approved, I'll call the Skill tool with "implement-spec" to execute it.

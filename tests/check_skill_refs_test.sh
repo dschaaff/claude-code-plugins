@@ -59,6 +59,33 @@ test_rejects_a_reference_to_a_missing_skill() {
   esac
 }
 
+test_accepts_a_skill_tool_invocation() {
+  current_test="exits 0 when a Skill tool invocation names an existing skill"
+  local dir out status
+  dir="$(new_skills_dir tool-good \
+    'alpha:Now call the Skill tool with "beta" to continue.' \
+    'beta:Does the work.')"
+  out="$("$CHECKER" "$dir" 2>&1)"
+  status=$?
+  [ "$status" -eq 0 ] || fail "expected exit 0, got $status. output: $out"
+}
+
+test_rejects_a_skill_tool_invocation_of_a_missing_skill() {
+  current_test="exits nonzero when a Skill tool invocation names a missing skill"
+  local dir out status
+  dir="$(new_skills_dir tool-rotten \
+    'alpha:Now call the Skill tool with "ghost" to continue.' \
+    'beta:Does the work.')"
+  out="$("$CHECKER" "$dir" 2>&1)"
+  status=$?
+
+  [ "$status" -ne 0 ] || fail "expected nonzero exit, got 0. output: $out"
+  case "$out" in
+  *ghost*) ;;
+  *) fail "expected the unresolved name in the message. output: $out" ;;
+  esac
+}
+
 test_ignores_unbackticked_prose() {
   current_test="does not flag ordinary prose that happens to end in the word skill"
   local dir out status
@@ -99,6 +126,8 @@ test_this_repos_skills_resolve() {
 
 test_accepts_a_reference_to_an_existing_sibling
 test_rejects_a_reference_to_a_missing_skill
+test_accepts_a_skill_tool_invocation
+test_rejects_a_skill_tool_invocation_of_a_missing_skill
 test_ignores_unbackticked_prose
 test_rejects_a_missing_reference_in_a_supporting_file
 test_this_repos_skills_resolve
