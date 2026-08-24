@@ -1,9 +1,9 @@
 ---
-name: code-review
+name: verify
 description: Review a diff on two axes, spec compliance and code quality - invoke before any git command when asked to review, verify, or check a diff, branch, PR, slice, or commit range. Also the rubric for reviewer subagents the `implement-spec` skill dispatches. With no spec, the spec axis is skipped and the quality axis still runs.
 ---
 
-# Code Review
+# Verify
 
 Review a diff along two independent axes — **spec compliance** and **code quality** — and
 report them separately. Code can follow every convention yet build the wrong thing, or match

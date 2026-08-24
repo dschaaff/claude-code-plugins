@@ -37,7 +37,7 @@ npx skills add dschaaff/agent-skills
 | `brainstorm` | Interview an idea into shared understanding before any code |
 | `to-spec` | Turn a finished design conversation into a spec file |
 | `implement-spec` | Work a spec slice by slice with fresh subagents |
-| `code-review` | Review a diff on two axes: spec compliance and code quality |
+| `verify` | Review a diff on two axes: spec compliance and code quality |
 | `tdd` | Red-green test-driven development |
 | `grilling` | Stress-test a plan or decision through relentless questioning |
 | `codebase-design` | Shared vocabulary for designing deep modules |

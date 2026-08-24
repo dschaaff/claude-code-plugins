@@ -76,7 +76,7 @@ Record BASE (`git rev-parse HEAD`). Dispatch a fresh subagent whose prompt conta
 ### 3. Review the slice
 
 Dispatch a reviewer subagent (`opus` default) with: the spec path, the slice number, the
-ref range `BASE..HEAD`, and the instruction to call the Skill tool with "code-review". Every
+ref range `BASE..HEAD`, and the instruction to call the Skill tool with "verify". Every
 slice gets this review — the implementer's self-assessment doesn't substitute for it.
 
 Findings the reviewer marks "cannot verify from diff" are yours to resolve — you hold the
@@ -107,8 +107,8 @@ and move on.
 
 ## Whole-Branch Review
 
-After all slices: dispatch one reviewer (`opus`) told to call the Skill tool with
-"code-review", with the spec path and the full branch range (`git merge-base <main> HEAD` to `HEAD`),
+After all slices: dispatch one reviewer (`opus`) told to call the Skill tool with "verify",
+with the spec path and the full branch range (`git merge-base <main> HEAD` to `HEAD`),
 pointing it at any parked findings in the spec to triage which block merge.
 
 Findings → **one fix dispatch** carrying the complete list. Re-review the fix range once,
