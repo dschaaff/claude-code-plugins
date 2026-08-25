@@ -9,24 +9,10 @@ Execute a spec by dispatching a fresh implementer subagent per slice, reviewing 
 against the spec, and running one whole-branch review at the end. The spec file is the single
 artifact: requirements, progress markers, and parked findings all live there. Use /tdd where possible, at pre-agreed seams.
 
-**Continuous execution:** work straight through the slices. Stop for a BLOCKED you can't
-resolve, genuine ambiguity in the spec, or completion.
+**Continuous execution:** work straight through the slices, only asking for human input when you can't
+resolve something on your own.
 
-**Context discipline:** your context is for coordination. Hand subagents paths and let them
-read the spec and run git themselves. A fresh subagent gets its slice and the interfaces that
-slice touches — that is the whole dispatch.
-
-## Model policy
-
-Always pass `model` explicitly when dispatching a subagent— an omitted model inherits the session's
-(usually the most capable and expensive).
-
-- **Implementer:** scale to the slice. `sonnet` for well-specified slices touching 1–2
-  files. `opus` for multi-file integration, design judgment, or subtle logic (concurrency,
-  parsers, migrations).
-- **Slice reviewer:** `opus` by default — review is a judgment task, and a weak reviewer is
-  worse than none. `sonnet` only for genuinely mechanical diffs.
-- **Whole-branch reviewer:** `opus`, always.
+**Context discipline:** Preserve your context window. Delegate each slice to a fresh subagent with isolated context.
 
 ## Setup
 
@@ -39,6 +25,14 @@ Always pass `model` explicitly when dispatching a subagent— an omitted model i
 4. **Todo per remaining slice.**
 5. **Conflict scan.** Slices that contradict each other or the design decisions get raised
    with the user as one batched question before execution — not one interrupt each.
+
+## Subagent Model Selection
+
+Use the least powerful model that can handle each role to conserve cost and
+increase speed. Always pass model explicitly when dispatching a subagent— an
+omitted model inherits the session's (usually the most capable and expensive).
+If a fix round is required, use a model a tier above the implementer that got stuck.
+Keep turn counts to a minimum.
 
 ## The Slice Loop
 
@@ -75,7 +69,7 @@ Record BASE (`git rev-parse HEAD`). Dispatch a fresh subagent whose prompt conta
 
 ### 3. Review the slice
 
-Dispatch a reviewer subagent (`opus` default) with: the spec path, the slice number, the
+Dispatch a reviewer subagent with: the spec path, the slice number, the
 ref range `BASE..HEAD`, and the instruction to call the Skill tool with "verify". Every
 slice gets this review — the implementer's self-assessment doesn't substitute for it.
 
@@ -94,7 +88,7 @@ After round 2, adjudicate each leftover yourself:
 - **Trivial** (rename, one-liner) — fix it directly, run the covering tests.
 - **Real but deferrable** — park it: note it in the spec under the slice with a one-line
   ruling. The whole-branch review triages parked items.
-- **Load-bearing** (later slices build on it, or it reveals a spec defect) — stop and ask
+- **Foundational** (later slices build on it, or it reveals a spec defect) — stop and ask
   the user.
 
 Minor findings skip fix rounds entirely — park them in the spec for the whole-branch review.
@@ -107,7 +101,7 @@ and move on.
 
 ## Whole-Branch Review
 
-After all slices: dispatch one reviewer (`opus`) told to call the Skill tool with "verify",
+After all slices: dispatch one reviewer told to call the Skill tool with "verify",
 with the spec path and the full branch range (`git merge-base <main> HEAD` to `HEAD`),
 pointing it at any parked findings in the spec to triage which block merge.
 

@@ -5,9 +5,8 @@ description: Review a diff on two axes, spec compliance and code quality - invok
 
 # Verify
 
-Review a diff along two independent axes — **spec compliance** and **code quality** — and
-report them separately. Code can follow every convention yet build the wrong thing, or match
-the spec while being a mess; keeping the axes apart stops one from masking the other.
+Review a diff along two independent axes, spec compliance** and code quality. Both run as
+parallel subagents with independent contexts. Aggregate their findings at the end.
 
 ## Scope
 
@@ -16,103 +15,67 @@ user points at. This skill is **not a completion gate**: finished work stays fin
 commands you already saw succeed stay succeeded, and ordinary tasks get no extra self-review
 pass.
 
-Invoked directly, give each axis its own subagent and aggregate their reports verbatim, so
-neither axis's reading colors the other. Dispatched as a reviewer subagent yourself, run both
-axes inline — no nesting.
+## Process
 
-## Inputs
+### 1. Pin the review point
 
-- **The diff.** Given a ref range instead of a diff, produce it yourself:
-  `git log --oneline A..B`, `git diff --stat A...B`, `git diff -U10 A...B`. Given a single
-  ref, the range is `<ref>...HEAD` (three-dot, against the merge-base). Confirm the ref
-  resolves (`git rev-parse <ref>`) and the diff is non-empty before anything else — a bad ref
-  or an empty diff fails here, not mid-review.
-- **The spec**, when one exists. Look in this order: a path the user passed; a file in
-  `docs/specs/` matching the branch or feature; issue references in the commit messages
-  (`#123`, `Closes #45`, `!67`). Reviewing a single slice: that slice's requirements are the
-  primary lens, the rest of the spec is context. Nothing found and the user names none: skip
-  the spec axis and say "no spec available".
-- **Repo standards** (CLAUDE.md, CONTRIBUTING.md, lint configs) when present — documented
-  standards win over the heuristics below.
+Whatever the user said is the fixed point (a commit SHA, branch name, tag, `main`, `HEAD~5`, etc.). If they didn't specify one, ask for it.
 
-## Axis 1: Spec compliance
+Capture the diff command once: `git diff <fixed-point>...HEAD` (three-dot, so the comparison is against the merge-base). Also note the list of commits via `git log <fixed-point>..HEAD --oneline`.
 
-Compare the diff against the spec's requirements. Every requirement in scope is accounted
-for — delivered, missing, or flagged unverifiable. Report, citing the spec line for each
-finding:
+Before going further, confirm the fixed point resolves (`git rev-parse <fixed-point>`) and the diff is non-empty. A bad ref or empty diff should fail here, not inside two parallel sub-agents.
 
-- **Missing or partial requirements** — spec demands it, diff doesn't deliver it.
-- **Scope creep** — behavior the spec never asked for (extra options, flags, generality).
-- **Contradictions** — implementations that do something different from what the spec says,
-  including exact values (numbers, formats, names) that don't match.
+### 2. Identify the spec
 
-## Axis 2: Code quality
+Look for the spec in this order:
 
-Judgment-call findings, each citing its hunk. Work the catalogue below. Every entry is a
-**labeled heuristic** ("possible Feature Envy"), never a hard violation, and a documented
-repo standard that conflicts with one wins.
+1. a path the user passed
+2. a file in `docs/specs/` matching the branch or feature
+3. issue references in the commit messages (`#123`, `Closes #45`, `!67`).
+4. If nothing is found, ask the user where the spec is. If they say there isn't one, the **Spec** sub-agent will skip and report "no spec available".
 
-Smells, each _what it is_ → _how to fix_ (Fowler, _Refactoring_ ch. 3, by way of
-[mattpocock/skills](https://github.com/mattpocock/skills) `engineering/code-review`):
+### 3. Identify standards sources
 
-- **Mysterious Name** — a function, variable, or type whose name doesn't reveal what it does
-  or holds. → rename it; if no honest name comes, the design is murky.
-- **Duplicated Code** — the same logic shape appears in more than one hunk or file. →
-  extract the shared shape, call it from both.
-- **Feature Envy** — a method that reaches into another object's data more than its own. →
-  move the method onto the data it envies.
-- **Data Clumps** — the same few fields or params keep travelling together, a type wanting to
-  be born. → bundle them into one type, pass that.
-- **Primitive Obsession** — a primitive or string standing in for a domain concept that
-  deserves its own type. → give the concept its own small type.
-- **Repeated Switches** — the same `switch`/`if`-cascade on the same type recurs across the
-  diff. → replace with polymorphism, or one map both sites share.
-- **Shotgun Surgery** — one logical change forces scattered edits across many files. →
-  gather what changes together into one module.
-- **Divergent Change** — one file or module is edited for several unrelated reasons. → split
-  so each module changes for one reason.
-- **Speculative Generality** — abstraction, parameters, or hooks added for needs the spec
-  doesn't have. → delete it; inline back until a real need shows.
-- **Message Chains** — long `a.b().c().d()` navigation the caller shouldn't depend on. →
-  hide the walk behind one method on the first object.
-- **Middle Man** — a class or function that mostly just delegates onward. → cut it, call the
-  real target direct.
-- **Refused Bequest** — a subclass or implementer that ignores or overrides most of what it
-  inherits. → drop the inheritance, use composition.
+Anything in the repo that documents how code should be written, such as `CODING_STANDARDS.md` or `CONTRIBUTING.md`.
 
-Beyond the smells:
+On top of whatever the repo documents, the Standards axis always carries the **smell baseline** below: a fixed set of Fowler code smells (_Refactoring_, ch.3) that applies even when a repo documents nothing. Two rules bind it:
 
-- **Swallowed failure** — an error path that drops the error, or loses which operation failed
-  on what input. → propagate it with the operation, the input, and the suggested fix.
-- **Self-fulfilling test** — a test that asserts on a mock, or recomputes its expected value
-  the way the code under test does. → assert a literal expected value against real behavior.
+- **The repo overrides.** A documented repo standard always wins; where it endorses something the baseline would flag, suppress the smell.
+- **Always a judgement call.** Each smell is a labelled heuristic ("possible Feature Envy"), never a hard violation. Like any standard here, skip anything tooling already enforces.
 
-## Out of scope
+Each smell reads _what it is_ → _how to fix_; match it against the diff:
 
-These belong elsewhere, so leave them out of the report:
+- **Mysterious Name**: a function, variable, or type whose name doesn't reveal what it does or holds. → rename it; if no honest name comes, the design's murky.
+- **Duplicated Code**: the same logic shape appears in more than one hunk or file in the change. → extract the shared shape, call it from both.
+- **Feature Envy**: a method that reaches into another object's data more than its own. → move the method onto the data it envies.
+- **Data Clumps**: the same few fields or params keep travelling together (a type wanting to be born). → bundle them into one type, pass that.
+- **Primitive Obsession**: a primitive or string standing in for a domain concept that deserves its own type. → give the concept its own small type.
+- **Repeated Switches**: the same `switch`/`if`-cascade on the same type recurs across the change. → replace with polymorphism, or one map both sites share.
+- **Shotgun Surgery**: one logical change forces scattered edits across many files in the diff. → gather what changes together into one module.
+- **Divergent Change**: one file or module is edited for several unrelated reasons. → split so each module changes for one reason.
+- **Speculative Generality**: abstraction, parameters, or hooks added for needs the spec doesn't have. → delete it; inline back until a real need shows.
+- **Message Chains**: long `a.b().c().d()` navigation the caller shouldn't depend on. → hide the walk behind one method on the first object.
+- **Middle Man**: a class or function that mostly just delegates onward. → cut it, call the real target direct.
+- **Refused Bequest**: a subclass or implementer that ignores or overrides most of what it inherits. → drop the inheritance, use composition.
 
-- Anything a linter, formatter, or type checker already enforces — tooling's job.
-- Tests the implementer already ran on the same code — their report carries that evidence.
-  (A whole-branch review may run the full suite once if no fresh run exists.)
-- Style preferences with no documented standard behind them.
-- Code outside the diff. Real problems in untouched code get one line at the end, marked
-  out-of-scope — they are not findings.
+### 4. Spawn both subagents in parallel
 
-## Report
+_Standards sub-agent prompt_* should include:
 
-Under **~400 words**, structured as:
+- The full diff command and commit list.
+- The list of standards-source files you found in step 3, **plus the smell baseline from step 3** pasted in full (the sub-agent has no other access to it).
+- The brief: "Report, per file/hunk where relevant, (a) every place the diff violates a documented standard: cite the standard (file + the rule); and (b) any baseline smell you spot: name it and quote the hunk. Distinguish hard violations from judgement calls: documented-standard breaches can be hard, but baseline smells are always judgement calls, and a documented repo standard overrides the baseline. Skip anything tooling enforces. Under 400 words."
 
-```markdown
-## Spec compliance
-- [Critical|Important|Minor] <finding> — spec: "<quoted line>"
+**Spec sub-agent prompt** should include:
 
-## Code quality
-- [Critical|Important|Minor] <finding> — <file:line / quoted hunk>
+- The diff command and commit list.
+- The path or fetched contents of the spec.
+- The brief: "Report: (a) requirements the spec asked for that are missing or partial; (b) behaviour in the diff that wasn't asked for (scope creep); (c) requirements that look implemented but where the implementation looks wrong. Quote the spec line for each finding. Under 400 words."
 
-Verdict: spec <pass|fail — one line>; quality <approve|revise — one line>
-```
+If the spec is missing, skip the Spec sub-agent and note this in the final report.
 
-Rank findings by severity **within** each axis; the axes stay separate — no merging, no
-re-ranking across them, no single overall winner. No findings on an axis: say so in one line.
-Requirements that can't be verified from the diff (they live in unchanged code or span
-slices) get flagged as "cannot verify from diff" — the controller resolves those, not you.
+### 5. Aggregate
+
+Present the two reports under `## Standards` and `## Spec` headings, verbatim or lightly cleaned. Do **not** merge or rerank findings, because the two axes are deliberately separate (see _Why two axes_).
+
+End with a one-line summary: total findings per axis, and the worst issue _within each axis_ (if any). Don't pick a single winner across axes: that's the reranking the separation exists to prevent.

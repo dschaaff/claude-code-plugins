@@ -66,7 +66,7 @@ Done when: an observable check.
 What this spec deliberately excludes.
 ```
 
-**The Slices section is load-bearing.** Each slice must be self-contained enough that an
+Each slice must be self-contained enough that an
 implementer given only the spec and a slice number can execute it — requirements live in
 the slice, not in the reader's memory of the conversation. Slice progress is later tracked
 by appending `— DONE` to slice headings, so keep headings stable.
