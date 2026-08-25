@@ -14,7 +14,9 @@ set -euo pipefail
 
 # disable-model-invocation: Claude Code only. Keeps a skill out of the model-facing list so
 # the user has to start it by hand. The other harnesses ignore the key.
-ALLOWED_EXTRA_FIELDS=(disable-model-invocation)
+# argument-hint: Claude Code only. Prompts the user for the argument a slash-command skill
+# takes. The other harnesses ignore the key.
+ALLOWED_EXTRA_FIELDS=(disable-model-invocation argument-hint)
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 SKILLS_DIR="${1:-$SCRIPT_DIR/../skills}"
