@@ -8,6 +8,7 @@ description: REQUIRED whenever implementing work described by a spec file in doc
 Execute a spec by dispatching a fresh implementer subagent per slice, reviewing each slice
 against the spec, and running one whole-branch review at the end. The spec file is the single
 artifact: requirements, progress markers, and parked findings all live there. Use /tdd where possible, at pre-agreed seams.
+When the scope of each slice is small enough to be done directly in the main agent, ask the user if they'd like to do so.
 
 **Continuous execution:** work straight through the slices, only asking for human input when you can't
 resolve something on your own.
@@ -107,7 +108,7 @@ pointing it at any parked findings in the spec to triage which block merge.
 
 Findings → **one fix dispatch** carrying the complete list. Re-review the fix range once,
 then adjudicate residuals as in the slice loop: trivial → fix, deferrable → park with
-ruling, load-bearing → user.
+ruling, foundational → user.
 
 ## Finish
 
