@@ -79,6 +79,7 @@ answered for every section:
 2. **Contradictions** — do sections disagree with each other?
 3. **Ambiguity** — could a requirement be read two ways? Pick one and make it explicit.
 4. **Slice independence** — can each slice be executed from the spec alone, in order?
+5. Facts — every path, symbol, count, and behavioral claim checked against the repo.
 
 ## Hand over
 

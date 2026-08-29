@@ -17,6 +17,16 @@ Use the ask user tool if available, if not each question should be formatted lik
 
 Each round the user answers reshapes the tree — settled decisions push the frontier outward and unblock questions that depended on them. Recompute the frontier and ask the next round. A question whose answer depends on another question still open in this round belongs to a _later_ round, not this one.
 
-Finding _facts_ is your job, never the user's. When a frontier question needs a fact from the environment (filesystem, tools, etc.), dispatch a sub-agent to find it — don't ask the user for anything you could look up yourself. Don't block on it: a running exploration is an unsettled prerequisite, so only the questions downstream of it wait for the sub-agent to report — ask the rest of the frontier now. The _decisions_ are the user's — put each to them and wait.
+Finding _facts_ is your job, never the user's. When a frontier question needs a
+fact from the environment (filesystem, tools, etc.), dispatch a sub-agent to
+find it — don't ask the user for anything you could look up yourself. Don't
+block on it: a running exploration is an unsettled prerequisite, so only the
+questions downstream of it wait for the sub-agent to report — ask the rest of
+the frontier now. The _decisions_ are the user's — put each to them and wait.
+When a sub-agent reports, read its finding against the decisions already
+settled, not only the question that dispatched it. A fact that lands late can
+contradict a recommendation the user already accepted. When it does, say which
+settled decision it undermines and reopen that branch in the next round — a
+settled answer must not stand on a premise the fact just broke.
 
-The session is done when the frontier is empty: every branch of the design tree visited, nothing left silently assumed. Do not act on it until the user confirms you have reached a shared understanding.
+The session is done when the frontier is empty: every branch of the design tree visited, nothing left silently assumed, and all sub agents have finished. Do not act on it until the user confirms you have reached a shared understanding.
