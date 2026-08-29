@@ -5,10 +5,9 @@ description: Capture the current discussion as a spec - invoke on any request to
 
 # To Spec
 
-Convert the current conversation into a spec file. o NOT interview the user —
-just synthesize what you already know. Every requirement traces to something
-the conversation settled. Where it leaves a real gap — a decision never made, a
-requirement never pinned down — ask the user explicitly before writing.
+This skill takes the current conversation context and codebase understanding
+and produces a spec. Do NOT interview the user; just synthesize what you
+already know.
 
 ## Ground the spec in the repo
 
@@ -52,7 +51,7 @@ through public boundaries — the fewer seams the better.
 
 ## Slices
 
-Numbered vertical slices, completable independently in order. Each slice:
+Numbered vertical slices (tracer bullets), completable independently in order. Each slice:
 
 ### Slice N: <name>
 
